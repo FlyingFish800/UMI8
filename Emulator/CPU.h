@@ -7,6 +7,9 @@
 #define DST 0b11100000
 #define SRC 0b00011100
 #define ALU 0b00000011
+#define LDNOT 0b00100000
+#define LDOR  0b01000000
+#define LDAND 0b10000000
 
 // Offsets
 #define DST_SHFT 5

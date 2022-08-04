@@ -6,12 +6,18 @@ CPU core;
 int main(int argc, char *argv[]){
     reset(&core);
     loadUCode(&core, "microcode.bin");
-    core.RAM[0] = 0x8;  // LDA
-    core.RAM[1] = 0x42; // 42
+    core.RAM[0] = 0x10; // JP I
+    core.RAM[1] = 0xAA; // AA  (AABB)
+    core.RAM[2] = 0xBB; // BB
+    
+    
+    
+    // Problems: First AO MIH might be going to MIL?
+    // Need workling ALU ;p
     coreDump(&core);
-    for (size_t i = 0; i < 7; i++)
-    {
+    while (1) {
         // UCode index and step mismatch because clock updates step at end
+        getchar();
         clock(&core);
         coreDump(&core);
     }

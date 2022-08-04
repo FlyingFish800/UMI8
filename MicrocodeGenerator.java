@@ -29,7 +29,7 @@ public class MicrocodeGenerator {
     public static final int ADD = 0b00000000;  // ADD
     public static final int CE  = 0b00000001;  // Count enable
     public static final int INC = 0b00000010;  // Increment/ADD
-    public static final int RSTA= 0b00000011;  // Reset A
+    public static final int RSA= 0b00000011;  // Reset A
 
     // How many microsteps
     public static final int MICROSTEPS = 32;
@@ -160,8 +160,8 @@ public class MicrocodeGenerator {
                                     binaryWord |= CE;
                                     break;
 
-                                case "RSTA":
-                                    binaryWord |= RSTA;
+                                case "RSA":
+                                    binaryWord |= RSA;
                                     break;
                                     
                                 case "INC":
