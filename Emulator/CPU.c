@@ -29,7 +29,103 @@ void clock(CPU* cpu){
 
     // Print ctrl info for debugging
     #ifdef DEBUG
-    printf("UCode Index: %d   Ctrl Word: 0x%x\n", MCIndex, CTRLWord);
+    printf("UCode Index: %d   Ctrl Word: 0x%x ", MCIndex, CTRLWord);
+    switch (CTRLWord & SRC) {
+        case MOL:
+            printf("MOL ");
+            break;
+
+        case MOH:
+            printf("MOH ");
+            break;
+
+        case POL:
+            printf("POL ");
+            break;
+
+        case POH:
+            printf("POH ");
+            break;
+
+        case EO:
+            printf("EO ");
+            break;
+
+        case AO:
+            printf("AO ");
+            break;
+            
+        case RD:
+            printf("RD ");
+            break;
+
+        case CR:
+            printf("CR ");
+            break;
+        
+        default:
+            printf("ERROR: Unimplemented/Invalid value 0x%x as bus source.\n", CTRLWord&SRC);
+            break;
+    }
+    switch (CTRLWord & DST) {
+        case II:
+            printf("II ");
+            break;
+
+        case MIH:
+            printf("MIH ");
+            break;
+            
+        case MIL:
+            printf("MIL ");
+            break;
+            
+        case PIL:
+            printf("PIL ");
+            break;
+            
+        case PIH:
+            printf("PIH ");
+            break;
+            
+        case AI:
+            printf("AI ");
+            break;
+            
+        case BI:
+            printf("BI ");
+            break;
+            
+        case WR:
+            printf("WR ");
+            break;
+        
+        default:
+            printf("ERROR: Unimplemented/Invalid value 0x%x as bus destination.\n", CTRLWord&DST);
+            break;
+    } 
+    switch (CTRLWord & ALU) {
+        case ADD:
+            printf("ADD ");
+            break;
+
+        case RSA:
+            printf("RSA ");
+            break;
+
+        case CE:
+            printf("CE ");
+            break;
+
+        case INC:
+            printf("INC ");
+            break;
+
+        default:
+            printf("ERROR: Unimplemented/Invalid value 0x%x as ALU configuration.\n", CTRLWord&ALU);
+            break;
+    }
+    printf("\n");
     #endif
 
     // Output to bus

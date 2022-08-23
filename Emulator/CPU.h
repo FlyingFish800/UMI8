@@ -2,6 +2,7 @@
 #define UMI8
 #include <stdio.h>
 #include <string.h>
+#include <memory.h>
 
 // Masks
 #define DST 0b11100000
@@ -44,8 +45,8 @@
 #define RSA 0b00000011
 
 // Sizes of ram and UCode (64k and 8k)
-#define RAM_SIZE 0xFFFF
-#define MCODE_SIZE 0x1FFF
+#define RAM_SIZE 0x10000
+#define MCODE_SIZE 0x2000
 
 // 8 bit number
 typedef unsigned char byte;
