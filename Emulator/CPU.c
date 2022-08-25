@@ -23,7 +23,7 @@ void reset(CPU* cpu){
 // Emulate one clock cycle of the cpu
 void clock(CPU* cpu){
     // Figure out ctrl byte (Instruction register is &|!OOOOO where first 3 are loadA modifiers, rest are opcode)
-    // Ucode indexing is formatted IIIIIFFFSSSSS where S = UStep, I = instruction, F = flags
+    // Ucode indexing is formatted IIIIIFFFSSSSS where S = UStep, I = instruction, F = flags (ZNC)
     unsigned short MCIndex = ((cpu->IR & 0b11111) << 8) | ((cpu->Flags & 0b111) << 5) | (cpu->UStep & 0b11111);
     byte CTRLWord = cpu->Microcode[MCIndex];
 
@@ -53,8 +53,12 @@ void clock(CPU* cpu){
             break;
 
         case EO:
-            if((CTRLWord & ALU) == INC) cpu->BUS = cpu->A + cpu->B + 1;
-            else cpu->BUS = cpu->A + cpu->B;
+            byte flags = 0;
+            // Add 1 if inc, also determine carry
+            if((CTRLWord & ALU) == INC) {cpu->BUS = cpu->A + cpu->B + 1;if((cpu->A+cpu->B+1)>255)flags|=1;}
+            else {cpu->BUS = cpu->A + cpu->B;if((cpu->A+cpu->B)>255)flags|=1;}
+            if(cpu->BUS == 0) flags |= 0b100;   // Zero
+            if((cpu->BUS&0b10000000) == 1) flags |= 0b10;   // Negative
             break;
 
         case AO:
