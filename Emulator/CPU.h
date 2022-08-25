@@ -44,6 +44,11 @@
 #define INC 0b00000010
 #define RSA 0b00000011
 
+// Flags
+#define ZERO     0b00000100
+#define NEGATIVE 0b00000010
+#define CARRY    0b00000001
+
 // Sizes of ram and UCode (64k and 8k)
 #define RAM_SIZE 0x10000
 #define MCODE_SIZE 0x2000
