@@ -55,10 +55,10 @@ void clock(CPU* cpu){
         case EO:
             byte flags = 0;
             // Add 1 if inc, also determine carry
-            if((CTRLWord & ALU) == INC) {cpu->BUS = cpu->A + cpu->B + 1;if((cpu->A+cpu->B+1)>255)flags|=1;}
-            else {cpu->BUS = cpu->A + cpu->B;if((cpu->A+cpu->B)>255)flags|=1;}
-            if(cpu->BUS == 0) flags |= 0b100;   // Zero
-            if((cpu->BUS&0b10000000) == 1) flags |= 0b10;   // Negative
+            if((CTRLWord & ALU) == INC) {cpu->BUS = cpu->A + cpu->B + 1;if((cpu->A+cpu->B+1)>255)flags|=CARRY;}
+            else {cpu->BUS = cpu->A + cpu->B;if((cpu->A+cpu->B)>255)flags|=CARRY;}
+            if(cpu->BUS == 0) flags |= ZERO;   // Zero
+            if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
             break;
 
         case AO:

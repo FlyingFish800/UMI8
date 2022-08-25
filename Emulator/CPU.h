@@ -104,4 +104,7 @@ void loadRam(CPU* cpu, char* path);
 // Load microcode from a file
 void loadUCode(CPU* cpu, char* path);
 
+// Print decoded ctrl lines. Used internally.
+void dbgCtrlLine(byte);
+
 #endif
