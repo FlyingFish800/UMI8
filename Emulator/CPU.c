@@ -66,7 +66,25 @@ void clock(CPU* cpu){
             break;
             
         case RD:
-            cpu->BUS = cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO];
+            // bool to stop reading ram after device read
+            byte inhibitRAM = 0;
+
+            // Look for device at current address
+            for (word i = 0; i < cpu->deviceCount; i++){
+                // if device registered at this address
+                if(cpu->devices[i].address == ((cpu->MARHI << 8) | cpu->MARLO)){
+                    if(cpu->devices[i].readDevice == NULL) continue; // Read mem as normal if no handler
+                    else{   // otherwise read device
+                        #ifdef DEBUG
+                        printf("Device @[%d] read (%d)\n", cpu->devices[i].address, cpu->devices[i].readDevice());
+                        #endif
+                        inhibitRAM = 1;
+                        cpu->BUS = cpu->devices[i].readDevice();
+                        break;
+                    } // end if
+                } // end if
+            } // end for;
+            if (!inhibitRAM) cpu->BUS = cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO];
             break;
 
         case CR:
@@ -176,6 +194,12 @@ void coreDump(CPU* cpu){
     printf("PC: 0x%x%x\n", cpu->PCHI, cpu->PCLO);
     printf("RAM[0x%x]: 0x%x\n", (cpu->MARHI << 8) | cpu->MARLO, cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO]);
 } // end coreDump
+
+// Add a new IODevice to the internal list
+void registerDevice(CPU* cpu, IODevice* device){
+    cpu->devices[cpu->deviceCount] = *device;
+    cpu->deviceCount = cpu->deviceCount + 1;
+} // end registerDevice
 
 // Debug print control lines
 void dbgCtrlLine(byte CTRLWord){

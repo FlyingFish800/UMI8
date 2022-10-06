@@ -49,12 +49,22 @@
 #define NEGATIVE 0b00000010
 #define CARRY    0b00000001
 
-// Sizes of ram and UCode (64k and 8k)
+// Sizes of ram and UCode (64k and 8k) (1 kigher because ti doesnt include 64k, 0 thru 64k-1)
 #define RAM_SIZE 0x10000
-#define MCODE_SIZE 0x2000
+#define MCODE_SIZE 0x20000
 
 // 8 bit number
 typedef unsigned char byte;
+
+// 16 bit number
+typedef __uint16_t word;
+
+// Structure for IODevice that contains its adress, and the pointers to the read and write functions for the cpu
+typedef struct IODevice {
+    word address;
+    int (*readDevice)();
+    void (*writeDevice)(int);
+} IODevice;
 
 // CPU internal registers
 typedef struct CPU {
@@ -87,6 +97,12 @@ typedef struct CPU {
 
     // 8K of microcode (13 bits)
     byte Microcode[MCODE_SIZE];
+
+    // Track how many hardware devices there are. Always points to next index
+    word deviceCount;
+
+    // Array of assigned IODevices
+    IODevice devices[RAM_SIZE];
 } CPU;
 
 // Function to emulate one clock cycle
@@ -103,6 +119,9 @@ void loadRam(CPU* cpu, char* path);
 
 // Load microcode from a file
 void loadUCode(CPU* cpu, char* path);
+
+// Register an IO device to the processor TODO: deregister?
+void registerDevice(CPU* cpu, IODevice* device);
 
 // Print decoded ctrl lines. Used internally.
 void dbgCtrlLine(byte);
