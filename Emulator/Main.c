@@ -1,4 +1,6 @@
+// Alexander Symons | Aug 6 2022 | Emulator | Main.c
 // Driver file for the CPU
+// Inputs: microcode binaru
 #include "CPU.h"
 
 CPU core;
@@ -47,9 +49,11 @@ int main(int argc, char *argv[]){
     core.RAM[0x426B] = 0x8; // LDA I
     core.RAM[0x426C] = 0x42; // 42
     coreDump(&core);*/
-    while (1) {
+
+    char c = 0x0;
+    while (c != 'q') {
         // UCode index and step mismatch because clock updates step at end
-        getchar();
+        c = getchar();
         clock(&core);
         coreDump(&core);
     }
