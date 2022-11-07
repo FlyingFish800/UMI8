@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "structs.h"
+#include "lexer.h"
 
 // Main entry point
 int main(int argc, char *argv[]) {
@@ -18,6 +19,8 @@ int main(int argc, char *argv[]) {
         perror("File not found\n");
         return -1;
     }
+
+    Instruction *instructions = parseProgram(fp);
 
     char c = fgetc(fp);
     do {
