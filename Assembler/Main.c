@@ -9,7 +9,7 @@
 // Main entry point
 int main(int argc, char *argv[]) {
     // Path to file to parse
-    char *path = "../Asm/test.asm";
+    char *path = "../Asm_Src/test.asm";
 
     // File pointer for file
     FILE *fp = fopen(path, "r");
@@ -21,12 +21,6 @@ int main(int argc, char *argv[]) {
     }
 
     Instruction *instructions = parseProgram(fp);
-
-    char c = fgetc(fp);
-    do {
-        printf("%c",c);
-        c = fgetc(fp);
-    } while (c != EOF);
 
     // Close file
     fclose(fp);

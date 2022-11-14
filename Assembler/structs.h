@@ -23,5 +23,4 @@ typedef struct Instruction {
     Operand *operands;
 } Instruction;
 
-
 #endif

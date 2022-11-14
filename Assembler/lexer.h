@@ -9,5 +9,6 @@
 #include "structs.h"
 
 Instruction *parseProgram(FILE *fp);
+int parseInstruction(FILE *fp, Instruction* Instructions);
 
 #endif
