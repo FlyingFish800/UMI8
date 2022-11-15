@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include "structs.h"
 
-Instruction *parseProgram(FILE *fp);
-int parseInstruction(FILE *fp, Instruction* Instructions);
+Program *parseProgram(FILE *fp);
 
 #endif

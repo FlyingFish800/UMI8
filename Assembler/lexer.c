@@ -66,26 +66,6 @@ int getNextBlock(FILE *fp){
     }
 }
 
-// Parse file given to function
-Instruction *parseProgram(FILE *fp){
-    Instruction *instructions = malloc(0);
-    if (instructions == NULL) printf("NO MEM");
-
-    // Get file pointer to first valid code block (or comment, which is handled in same code)
-    skipWhiteSpace(fp);
-    
-
-    // ParseInstruction for every line of file, handles comments and "\n". breaks look when EOF encoutnered
-    while (parseInstruction(fp, instructions)){
-        printf("-----");
-        /* code */
-    }
-    
-    // Parse individual instructions
-
-    return instructions;
-}
-
 // Read an instruction, and add it to the instructions pointer. Return 1 if there is more to parse, 0 for EOF
 int parseInstruction(FILE *fp, Instruction *instructions){
     /* Handles lines that are just \n or comments.
@@ -104,18 +84,41 @@ int parseInstruction(FILE *fp, Instruction *instructions){
 
     // Read Identifier
     // Create variable, read char by char
+    // TODO: Memsafe?
+    int len = 0;
     char *id = malloc(0);
     do {
+        len+=1;
+        id = realloc(id,len*sizeof(char));
+        if (id == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
         strncat(id, &c, 1);
         c = fgetc(fp);
     } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
     ungetc(c, fp);
-    printf("<%s>",id);
+
+
+    Instruction instruction;
+    if(id[0] == '_') {
+        instruction.instructionType = LABEL;
+    } else if (strcmp(id, "GLOBAL") == 0) {
+        instruction.instructionType = GLOBAL;
+    } else if (strcmp(id, "LD") == 0){
+        instruction.instructionType = LD;
+    } else if (strcmp(id, "RET") == 0){
+        instruction.instructionType = RET;
+    } else if (strcmp(id, "NOP") == 0){
+        instruction.instructionType = NOP;
+    } else {
+        printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
+        return 0;
+    }
+
+    printf("INS <%s>",id);
 
 
     // Parse next block
     while (1){ 
-        // Get next block. If returns true for EOF, no more to parse
+        // Get next block. If returns true for EOF, no more to parse. Pushes instruction to list    
         if (getNextBlock(fp)) return 0;
         c = fgetc(fp);
         if (c == '\n') return 1;
@@ -127,8 +130,30 @@ int parseInstruction(FILE *fp, Instruction *instructions){
         } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
         ungetc(c, fp);
     }
+}
+
+// Parse file given to function
+Program *parseProgram(FILE *fp){
+
+    Instruction *instructions = malloc(0);
+    if (instructions == NULL) printf("NO MEM");
+
+    // Get file pointer to first valid code block (or comment, which is handled in same code)
+    skipWhiteSpace(fp);
     
 
-    // No more to parse
-    return 1;
+    // ParseInstruction for every line of file, handles comments and "\n". breaks look when EOF encoutnered
+    while (parseInstruction(fp, instructions)){
+        printf("\n");
+        /* code */
+    }
+    
+    Program *program;
+    program->Instructions = instructions;
+
+    printf("\n");
+
+    printf("Instructions: %lu\n",sizeof(program->Instructions));
+    // Parse individual instructions
+    return program;
 }

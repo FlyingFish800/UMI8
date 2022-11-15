@@ -6,7 +6,7 @@
 #define STRUCTS
 
 // Mnemonic for instruction
-typedef enum TokenType {NOP, LD} TokenType;
+typedef enum TokenType {GLOBAL, LABEL, NOP, LD, RET} TokenType;
 
 // Memory adressing mode for the instruction
 typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT} AccessingMode;
@@ -14,7 +14,7 @@ typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT} AccessingMode;
 // Operand for the instruciton. Contains adressing mode and value
 typedef struct Operand {
     AccessingMode accesingMode;
-    int value;
+    char *value;
 } Operand;
 
 // Instruction token struct for parser
@@ -22,5 +22,10 @@ typedef struct Instruction {
     TokenType instructionType;
     Operand *operands;
 } Instruction;
+
+typedef struct Program {
+    int length;
+    Instruction *Instructions;
+} Program;
 
 #endif

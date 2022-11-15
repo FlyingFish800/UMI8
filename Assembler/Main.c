@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "structs.h"
 #include "lexer.h"
 
@@ -20,13 +21,13 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    Instruction *instructions = parseProgram(fp);
+    Program *program = parseProgram(fp);
 
     // Close file
     fclose(fp);
 
-    printf("\n");
-
+    free(program->Instructions);
+    
     // Return sucessful
     return 0;
 }
