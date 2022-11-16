@@ -10,7 +10,7 @@
 
 // Returns true if character is whitespace
 int isWhiteSpace(char c){
-    return c == ' ' || c == '\t';
+    return c == ' ' || c == '\t' || c == ',';
 }
 
 // Returns true if character is comment or end of line
@@ -66,8 +66,26 @@ int getNextBlock(FILE *fp){
     }
 }
 
+// Push an operand to the Instruction's stack of operands. Return 1 to continue
+int addOperand(Instruction *i, Operand o){
+    i->operandsLength += 1;
+    i->operands = realloc(i->operands, sizeof(Operand)*i->operandsLength);
+    i->operands[i->operandsLength-1] = o;
+    if (i->operands == NULL) {perror("COULDNT REALLOC OPERANDS"); return 0;}
+    return 1;
+}
+
+// Push an instruction to the program (stack of instructions). Return 1 to continue
+int addInstruction(Program *p, Instruction i, int returnCode){
+    p->length += 1;
+    p->Instructions = realloc(p->Instructions, sizeof(Instruction)*p->length);
+    p->Instructions[p->length-1] = i;
+    if (p->Instructions == NULL) {perror("COULDNT REALLOC INSTRUCTIONS"); return 0;}
+    return returnCode;
+}
+
 // Read an instruction, and add it to the instructions pointer. Return 1 if there is more to parse, 0 for EOF
-int parseInstruction(FILE *fp, Instruction *instructions){
+int parseInstruction(FILE *fp, Program *program){
     /* Handles lines that are just \n or comments.
      * 1: Skip white space and check if comment
      * 2: Read identifier
@@ -91,11 +109,14 @@ int parseInstruction(FILE *fp, Instruction *instructions){
         len+=1;
         id = realloc(id,len*sizeof(char));
         if (id == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
-        strncat(id, &c, 1);
+        id[len-1] = c;
         c = fgetc(fp);
     } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
     ungetc(c, fp);
 
+    // When buildign strings yourself, dont forget to null terminate them!
+    id = realloc(id,(len+1)*sizeof(char));
+    id[len] = '\0';
 
     Instruction instruction;
     if(id[0] == '_') {
@@ -115,45 +136,76 @@ int parseInstruction(FILE *fp, Instruction *instructions){
 
     printf("INS <%s>",id);
 
+    instruction.operandsLength = 0;
+    instruction.operands = malloc(0);
+    if (instruction.operands == NULL) {perror("FAILED INITIAL ALLOCATION OF OPERANDS"); return 0;}
 
     // Parse next block
+    Operand operand;
     while (1){ 
         // Get next block. If returns true for EOF, no more to parse. Pushes instruction to list    
-        if (getNextBlock(fp)) return 0;
+        if (getNextBlock(fp)) return addInstruction(program, instruction, 0);
         c = fgetc(fp);
-        if (c == '\n') return 1;
+        if (c == '\n') return addInstruction(program, instruction, 1);
 
-        // Read Identifier
+        int opLen = 0;
+        char *opId = malloc(0);
         do {
-            printf("%c",c);
+            opLen+=1;
+            opId = realloc(opId,opLen*sizeof(char));
+            if (opId == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
+            opId[opLen-1] = c;
             c = fgetc(fp);
         } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
         ungetc(c, fp);
+
+        // When buildign strings yourself, dont forget to null terminate them!
+        opId = realloc(opId,(opLen+1)*sizeof(char));
+        opId[opLen] = '\0';
+
+        operand.value = opId;
+        operand.accesingMode = 0;
+
+        if(operand.value[0] == '_') {
+            printf("LABEL");
+            operand.accesingMode = INDIRECT_LABEL;
+        } else if(operand.value[0] == 'A' || opId[0] == 'B') {
+            printf("REG");
+            operand.accesingMode = REGISTER;
+        } else if(operand.value[0] == '#') {
+            printf("IMM");
+            operand.accesingMode = IMMEDIATE;
+        } else if(operand.value[0] == '[') {
+            printf("IND");
+            operand.accesingMode = INDIRECT;
+        } else {
+            printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
+            return 0;
+        }
+
+        printf(":%s ",operand.value);
+
+        // Push operand to instruction. If it returns a 1, quit
+        if(!addOperand(&instruction, operand)) return 0; 
     }
 }
 
 // Parse file given to function
-Program *parseProgram(FILE *fp){
+void parseProgram(FILE *fp, Program *program){
 
-    Instruction *instructions = malloc(0);
-    if (instructions == NULL) printf("NO MEM");
+    // Create program so parseInstructions can use size as an index into instruction array TODO: Implement program as stack
+    program->length = 0;
+    program->Instructions = malloc(0);
+    if (program->Instructions == NULL) printf("NO MEM");
 
     // Get file pointer to first valid code block (or comment, which is handled in same code)
     skipWhiteSpace(fp);
-    
 
     // ParseInstruction for every line of file, handles comments and "\n". breaks look when EOF encoutnered
-    while (parseInstruction(fp, instructions)){
+    while (parseInstruction(fp, program)){
         printf("\n");
         /* code */
     }
-    
-    Program *program;
-    program->Instructions = instructions;
 
     printf("\n");
-
-    printf("Instructions: %lu\n",sizeof(program->Instructions));
-    // Parse individual instructions
-    return program;
 }

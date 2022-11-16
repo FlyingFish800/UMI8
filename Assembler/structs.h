@@ -9,7 +9,7 @@
 typedef enum TokenType {GLOBAL, LABEL, NOP, LD, RET} TokenType;
 
 // Memory adressing mode for the instruction
-typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT} AccessingMode;
+typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT, INDIRECT_LABEL} AccessingMode;
 
 // Operand for the instruciton. Contains adressing mode and value
 typedef struct Operand {
@@ -20,6 +20,7 @@ typedef struct Operand {
 // Instruction token struct for parser
 typedef struct Instruction {
     TokenType instructionType;
+    int operandsLength;
     Operand *operands;
 } Instruction;
 

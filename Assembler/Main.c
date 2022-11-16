@@ -9,6 +9,8 @@
 
 // Main entry point
 int main(int argc, char *argv[]) {
+    printf("UMI8 Assembler only accepts assembly files with all caps instructions");
+
     // Path to file to parse
     char *path = "../Asm_Src/test.asm";
 
@@ -21,12 +23,26 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    Program *program = parseProgram(fp);
+    Program program;
+    parseProgram(fp, &program);
 
     // Close file
     fclose(fp);
 
-    free(program->Instructions);
+    printf("----\n");
+    for (size_t i = 0; i < program.length; i++) {
+        printf("%i", program.Instructions[i].instructionType);
+        for (size_t j = 0; j < program.Instructions[i].operandsLength; j++){
+            printf("%s ", program.Instructions[i].operands[j].value);
+        }
+        printf("\n");
+    }
+    
+    
+
+    for (int i = 0; i < program.length; i++) free(program.Instructions[i].operands);
+
+    free(program.Instructions);
     
     // Return sucessful
     return 0;
