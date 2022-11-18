@@ -2,6 +2,7 @@
 // Driver file for the CPU
 // Inputs: microcode binaru
 #include "CPU.h"
+#include "IODevices/terminal.h"
 
 CPU core;
 IODevice dummy;
@@ -12,7 +13,8 @@ int sixnine(){
 
 int main(int argc, char *argv[]){
     dummy.address = 2;
-    dummy.readDevice = sixnine;
+    dummy.readDevice = recieveChar;
+    dummy.writeDevice = sendChar;
 
     reset(&core);
     loadUCode(&core, "microcode.bin");

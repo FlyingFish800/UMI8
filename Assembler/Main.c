@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "structs.h"
 #include "lexer.h"
+#include "codegen.h"
 
 // Main entry point
 int main(int argc, char *argv[]) {
@@ -39,10 +40,15 @@ int main(int argc, char *argv[]) {
     }
     
     
+    printf("Begining Codegen...\n");
+    generateCode(&program, NULL);
 
+
+    // Free parsed instructions
     for (int i = 0; i < program.length; i++) free(program.Instructions[i].operands);
 
     free(program.Instructions);
+    
     
     // Return sucessful
     return 0;
