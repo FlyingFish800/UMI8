@@ -1,3 +1,5 @@
+ORG #0x0
+
 ; comment
 GLOBAL _start ; This is a comment
 
