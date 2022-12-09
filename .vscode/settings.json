@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "ansiicommands.h": "c",
+        "stdio.h": "c",
+        "Minesweeper.C": "cpp",
+        "cpu.h": "c",
+        "terminal.h": "c"
+    }
+}
