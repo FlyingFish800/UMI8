@@ -63,12 +63,15 @@ int handleLD(Instruction ins){
             printf("LD R");
 
             switch (ins.operands[1].accesingMode) {
-                case REGISTER: // LD reg, R
+                case REGISTER: // LD reg, reg   1 Byte
                     printf("LD R, R");
+                    printf("%s %s", ins.operands[0].value, ins.operands[1].value);
+                    return 1;
                     break;
 
-                case IMMEDIATE: // LD reg, I
+                case IMMEDIATE: // LD reg, I    2 Bytes
                     printf("LD R, I");
+                    return 2;
                     break;
                 
                 default:
@@ -78,16 +81,18 @@ int handleLD(Instruction ins){
             }
             break;
 
-        case INDIRECT: // LD [imm], ?
+        case INDIRECT: // LD [imm], ?   TODO: CHECK IF ZERO PAGE
             printf("LD [I]");
 
             switch (ins.operands[1].accesingMode) {
-                case REGISTER: // LD [imm], R
+                case REGISTER: // LD [imm], R   3 Bytes
                     printf("LD [I], R");
+                    return 3;
                     break;
 
-                case IMMEDIATE: // LD [imm], I
+                case IMMEDIATE: // LD [imm], I  4 Bytes
                     printf("LD [I], I");
+                    return 4;
                     break;
                 
                 default:
