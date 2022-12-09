@@ -46,11 +46,61 @@ int addLabel (LabelTable *lt, Label l){
     return 0;
 }
 
-// Add instuction to instruction table array at a specific lcoation
-int addInstructionToTable(char instruction, char* instructionTable, int address){
-    // Resize to be at size of current address if it is larger than the current size
-    if (address >= PROGRAM_SIZE) {printf("ADDRESS TOO LARGE 0x%x of %i\n", address, PROGRAM_SIZE); return -1;}
-    instructionTable[address] = instruction;
+// Decodes immediate value and returns its value
+int decodeImmediate(char *immediate){
+    if (*immediate == '#') return toInt(++immediate);
+    printf("VALUE IS NOT AN IMEMDIATE: %s\n", immediate);
+    return -1;
+}
+
+// Handle all variants of the LD ?, ? instruction and return the size in bytes
+int handleLD(Instruction ins){
+    printf("LD");
+
+    // Check to see which variant is used
+    switch (ins.operands[0].accesingMode) {
+        case REGISTER: // LD reg, ?
+            printf("LD R");
+
+            switch (ins.operands[1].accesingMode) {
+                case REGISTER: // LD reg, R
+                    printf("LD R, R");
+                    break;
+
+                case IMMEDIATE: // LD reg, I
+                    printf("LD R, I");
+                    break;
+                
+                default:
+                    printf("INVALID/UNIMPLEMENTED OPERAND TYPE FOR LD reg, %i\n", ins.operands[0].accesingMode);
+                    return -1;
+                    break;
+            }
+            break;
+
+        case INDIRECT: // LD [imm], ?
+            printf("LD [I]");
+
+            switch (ins.operands[1].accesingMode) {
+                case REGISTER: // LD [imm], R
+                    printf("LD [I], R");
+                    break;
+
+                case IMMEDIATE: // LD [imm], I
+                    printf("LD [I], I");
+                    break;
+                
+                default:
+                    printf("INVALID/UNIMPLEMENTED OPERAND TYPE FOR LD [imm], %i\n", ins.operands[0].accesingMode);
+                    return -1;
+                    break;
+            }
+            break;
+
+        default:
+            printf("INVALID/UNIMPLEMENTED OPERAND TYPE FOR LD %i\n", ins.operands[0].accesingMode);
+            return -1;
+    }
     return 0;
 }
 
@@ -81,12 +131,13 @@ int generateCode(Program *program, FILE *outFile){
 
                 // Add label and handle errors if necessary
                 if(addLabel(&lt, l) < 0) return -1;
-                printf("label %i found '%s' @0x%x\n", lt.length, ins->operands[0].value, l.address);
+                printf("Label %i found '%s' @0x%x\n", lt.length, ins->operands[0].value, l.address);
                 break;
 
             case ORG:
                 // ORG directly sets address
-                address = toInt(++ins->operands[0].value);
+                address = decodeImmediate(ins->operands[0].value);
+                if (address == -1) return -1;
                 printf("Organized to %i\n", address);
                 break;
 
@@ -96,21 +147,11 @@ int generateCode(Program *program, FILE *outFile){
                 break;
 
             case LD:
-                addInstructionToTable('L',machineCode, address);
                 // Load can have variable length based on which variant is used. All should have 2 operands though
                 if (ins->operandsLength != 2) {printf("INVALID OPERANDS LENGTH %i FOR LD\n", ins->operandsLength); return -1;}
-
-                // Check to see which variant is used
-                switch (ins->operands[0].accesingMode) {
-                    case REGISTER: // LD reg, ?
-                        /* code */
-                        break;
-
-                    default:
-                        printf("INVALID/UNIMPLEMENTED OPERAND TYPE %i\n", ins->operands[0].accesingMode);
-                        return -1;
-                }
-                address += 1;
+                int size = handleLD(*ins);
+                if (size == -1) return -1;
+                address += size;
                 break;
 
             case NOP:
