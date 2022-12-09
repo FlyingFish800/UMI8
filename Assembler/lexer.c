@@ -70,8 +70,8 @@ int getNextBlock(FILE *fp){
 int addOperand(Instruction *i, Operand o){
     i->operandsLength += 1;
     i->operands = realloc(i->operands, sizeof(Operand)*i->operandsLength);
-    i->operands[i->operandsLength-1] = o;
     if (i->operands == NULL) {perror("COULDNT REALLOC OPERANDS"); return 0;}
+    i->operands[i->operandsLength-1] = o;
     return 1;
 }
 
@@ -79,8 +79,8 @@ int addOperand(Instruction *i, Operand o){
 int addInstruction(Program *p, Instruction i, int returnCode){
     p->length += 1;
     p->Instructions = realloc(p->Instructions, sizeof(Instruction)*p->length);
-    p->Instructions[p->length-1] = i;
     if (p->Instructions == NULL) {perror("COULDNT REALLOC INSTRUCTIONS"); return 0;}
+    p->Instructions[p->length-1] = i;
     return returnCode;
 }
 
@@ -118,20 +118,25 @@ int parseInstruction(FILE *fp, Program *program){
     id = realloc(id,(len+1)*sizeof(char));
     id[len] = '\0';
 
+    // Prepare instruction for operands
     Instruction instruction;
 
     instruction.operandsLength = 0;
     instruction.operands = malloc(0);
+    if (instruction.operands == NULL) {perror("FAILED INITIAL ALLOCATION OF OPERANDS"); return 0;}
 
+    // Determine enum type
     if(id[0] == '_') {
         id[len-1] = '\0';
         instruction.instructionType = LABEL;
-        Operand label;
-        label.value = id;
-        label.accesingMode = NONE;
 
-        // Push operand to instruction. If it returns a 1, quit
-        if(!addOperand(&instruction, label)) return 0; 
+
+        // Push label id as operand
+        if(id[len-1] == ':') id[len-1] = '\0';
+        Operand op;
+        op.accesingMode = NONE;
+        op.value = id;
+        if(!addOperand(&instruction, op)) return 0;
     } else if (strcmp(id, "GLOBAL") == 0) {
         instruction.instructionType = GLOBAL;
     } else if (strcmp(id, "ORG") == 0) {
@@ -148,7 +153,6 @@ int parseInstruction(FILE *fp, Program *program){
     }
 
     printf("INS <%s>",id);
-    if (instruction.operands == NULL) {perror("FAILED INITIAL ALLOCATION OF OPERANDS"); return 0;}
 
     // Parse next block
     Operand operand;

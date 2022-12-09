@@ -10,10 +10,10 @@
 
 // Main entry point
 int main(int argc, char *argv[]) {
-    printf("UMI8 Assembler only accepts assembly files with all caps instructions");
+    printf("NOTE: UMI8 Assembler only accepts assembly files with all caps instructions\n");
 
     // Path to file to parse
-    char *path = "../Asm_Src/test.asm";
+    char *path = "../Asm_Src/testGen.asm";
 
     // File pointer for file
     FILE *fp = fopen(path, "r");

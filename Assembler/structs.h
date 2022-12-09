@@ -17,16 +17,29 @@ typedef struct Operand {
     char *value;
 } Operand;
 
-// Instruction token struct for parser
+// Instruction token struct for parser. Functions as a queue of Operands and a type
 typedef struct Instruction {
     TokenType instructionType;
     int operandsLength;
     Operand *operands;
 } Instruction;
 
+// Program struct that contains all parsed instructions and fucntions as a queue
 typedef struct Program {
     int length;
     Instruction *Instructions;
 } Program;
+
+// Label for tracking addresses
+typedef struct Label {
+    char *identifier;
+    int address;
+} Label;
+
+// LabelTable struct that contains all labels as a queue
+typedef struct LabelTable {
+    int length;
+    Label *labels;
+} LabelTable;
 
 #endif

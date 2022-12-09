@@ -1,3 +1,5 @@
+ORG #0x0
+
 ; comment
 ORG #0x0000
 
