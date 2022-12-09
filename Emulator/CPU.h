@@ -4,6 +4,9 @@
 #include <string.h>
 #include <memory.h>
 
+// Uncomment for debug printfs
+#define DEBUG
+
 // Masks
 #define DST 0b11100000
 #define SRC 0b00011100
@@ -62,8 +65,8 @@ typedef __uint16_t word;
 // Structure for IODevice that contains its adress, and the pointers to the read and write functions for the cpu
 typedef struct IODevice {
     word address;
-    int (*readDevice)();
-    void (*writeDevice)(int);
+    byte (*readDevice)();
+    void (*writeDevice)(byte);
 } IODevice;
 
 // CPU internal registers

@@ -1,6 +1,7 @@
 // Alexander Symons | Aug 6 2022 | Emulator | Main.c
 // Driver file for the CPU
-// Inputs: microcode binaru
+// Inputs: microcode binary
+
 #include "CPU.h"
 #include "IODevices/terminal.h"
 
@@ -12,7 +13,7 @@ int sixnine(){
 }
 
 int main(int argc, char *argv[]){
-    dummy.address = 2;
+    dummy.address = 0x100;
     dummy.readDevice = recieveChar;
     dummy.writeDevice = sendChar;
 
@@ -21,8 +22,12 @@ int main(int argc, char *argv[]){
     core.RAM[RAM_SIZE-1] = 0xFF; // SP = FF
     registerDevice(&core,&dummy);
 
-    core.RAM[1] = 0x08;
-    core.RAM[2] = 0x42;
+    core.RAM[0] = 0x08; // LDA I
+    core.RAM[1] = 'A'; // 65
+    core.RAM[2] = 0xB;  // LDB A
+    core.RAM[3] = 0x0F; // LDM(I) B 0x0100
+    core.RAM[4] = 0x01; // 0x01
+    core.RAM[5] = 0x00; // 0x00
 
     
     /*core.RAM[0] = 0x21; // CALL I
@@ -55,9 +60,15 @@ int main(int argc, char *argv[]){
     char c = 0x0;
     while (c != 'q') {
         // UCode index and step mismatch because clock updates step at end
+        #ifdef DEBUG
         c = getchar();
+        #endif
+
         clock(&core);
+
+        #ifdef DEBUG
         coreDump(&core);
+        #endif
     }
     
 } // end main

@@ -6,5 +6,5 @@ byte recieveChar(){
 }
 
 void sendChar(byte c){
-    printf("%c");
+    printf("%c",c);
 }

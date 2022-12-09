@@ -119,10 +119,23 @@ int parseInstruction(FILE *fp, Program *program){
     id[len] = '\0';
 
     Instruction instruction;
+
+    instruction.operandsLength = 0;
+    instruction.operands = malloc(0);
+
     if(id[0] == '_') {
+        id[len-1] = '\0';
         instruction.instructionType = LABEL;
+        Operand label;
+        label.value = id;
+        label.accesingMode = NONE;
+
+        // Push operand to instruction. If it returns a 1, quit
+        if(!addOperand(&instruction, label)) return 0; 
     } else if (strcmp(id, "GLOBAL") == 0) {
         instruction.instructionType = GLOBAL;
+    } else if (strcmp(id, "ORG") == 0) {
+        instruction.instructionType = ORG;
     } else if (strcmp(id, "LD") == 0){
         instruction.instructionType = LD;
     } else if (strcmp(id, "RET") == 0){
@@ -135,9 +148,6 @@ int parseInstruction(FILE *fp, Program *program){
     }
 
     printf("INS <%s>",id);
-
-    instruction.operandsLength = 0;
-    instruction.operands = malloc(0);
     if (instruction.operands == NULL) {perror("FAILED INITIAL ALLOCATION OF OPERANDS"); return 0;}
 
     // Parse next block

@@ -1,9 +1,6 @@
 // Contains implementation of UMI 8 CPU
 #include "CPU.h"
 
-// Uncomment for debug printfs
-#define DEBUG
-
 // Reset all internal registers and state of CPU.
 // DOESN'T RESET MICROCODE
 void reset(CPU* cpu){
@@ -138,7 +135,26 @@ void clock(CPU* cpu){
             break;
             
         case WR:
-            cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO] = cpu->BUS;
+            // bool to stop writing ram after device write
+            byte inhibitRAM = 0;
+
+            // Look for device at current address
+            for (word i = 0; i < cpu->deviceCount; i++){
+                // if device registered at this address
+                if(cpu->devices[i].address == ((cpu->MARHI << 8) | cpu->MARLO)){
+                    if(cpu->devices[i].writeDevice == NULL) continue; // Write mem as normal if no handler
+                    else{   // otherwise Write device
+                        #ifdef DEBUG
+                        printf("Device @[%d] write (%d)\n", cpu->devices[i].address, cpu->BUS);
+                        #endif
+                        inhibitRAM = 1;
+                        cpu->devices[i].writeDevice(cpu->BUS);
+                        break;
+                    } // end if
+                } // end if
+            } // end for;
+
+            if(!inhibitRAM) cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO] = cpu->BUS;
             break;
         
         default:
