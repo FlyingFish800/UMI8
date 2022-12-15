@@ -32,13 +32,10 @@ void clock(CPU* cpu){
 
     // Output to bus
     // Switch on SRC bits for ctrl word. Push appropriate value to bus
+    byte flags = 0;
     switch (CTRLWord & SRC) { // TODO: EO 
-        case MOL:
-            cpu->BUS = cpu->MARLO;
-            break;
-
-        case MOH:
-            cpu->BUS = cpu->MARHI;
+        case BO:
+            cpu->BUS = cpu->B;
             break;
 
         case POL:
@@ -49,19 +46,29 @@ void clock(CPU* cpu){
             cpu->BUS = cpu->PCHI;
             break;
 
+        case EOS:
+            // TODO: Fix flags
+            // Add 1 if inc, also determine carry
+            if((CTRLWord & ALU) == INC) {cpu->BUS = (cpu->A + (~cpu->B & 0xFFFF) + 1) & 0xFFFF;if((cpu->A+(~cpu->B & 0xFFFF)+1)>255) flags|=CARRY;}
+            else {cpu->BUS = (cpu->A + (~cpu->B & 0xFFFF)) & 0xFFFF;if(cpu->A+(~cpu->B & 0xFFFF)>255) flags|=CARRY;}
+            if(cpu->BUS == 0) flags |= ZERO;   // Zero
+            if((cpu->BUS&0b10000000)>>7 == 1) flags |= NEGATIVE;   // Negative
+            cpu->Flags = flags;
+            break;
+
         case EO:
-            byte flags = 0;
             // Add 1 if inc, also determine carry
             if((CTRLWord & ALU) == INC) {cpu->BUS = cpu->A + cpu->B + 1;if((cpu->A+cpu->B+1)>255)flags|=CARRY;}
             else {cpu->BUS = cpu->A + cpu->B;if((cpu->A+cpu->B)>255)flags|=CARRY;}
             if(cpu->BUS == 0) flags |= ZERO;   // Zero
             if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
+            cpu->Flags = flags;
             break;
 
         case AO:
             cpu->BUS = cpu->A;
             break;
-            
+
         case RD:
             // bool to stop reading ram after device read
             byte inhibitRAM = 0;
@@ -220,12 +227,12 @@ void registerDevice(CPU* cpu, IODevice* device){
 // Debug print control lines
 void dbgCtrlLine(byte CTRLWord){
     switch (CTRLWord & SRC) {
-        case MOL:
-            printf("MOL ");
+        case BO:
+            printf("BO ");
             break;
 
-        case MOH:
-            printf("MOH ");
+        case EOS:
+            printf("EOS ");
             break;
 
         case POL:

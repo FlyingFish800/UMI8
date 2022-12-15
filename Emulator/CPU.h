@@ -32,8 +32,8 @@
 #define WR  0b11100000
 
 // SRC ctrl lines
-#define MOL 0b00000000
-#define MOH 0b00000100
+#define BO  0b00000000
+#define EOS 0b00000100
 #define POL 0b00001000
 #define POH 0b00001100
 #define AO  0b00010000

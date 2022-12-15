@@ -17,8 +17,8 @@ public class MicrocodeGenerator {
     public static final int BI  = 0b11000000;  // B in
     public static final int WR  = 0b11100000;  // Memory Write
 
-    public static final int MOL = 0b00000000;  // Mem out low
-    public static final int MOH = 0b00000100;  // Mem out High
+    public static final int BO  = 0b00000000;  // Mem out low
+    public static final int EOS = 0b00000100;  // Mem out High
     public static final int POL = 0b00001000;  // Pointer out Low
     public static final int POH = 0b00001100;  // Pointer out High
     public static final int AO  = 0b00010000;  // A out
@@ -119,12 +119,12 @@ public class MicrocodeGenerator {
                                     break;
 
                                 // SRC
-                                case "MOL":
-                                    binaryWord |= MOL;
+                                case "BO":
+                                    binaryWord |= BO;
                                     break;
 
-                                case "MOH":
-                                    binaryWord |= MOH;
+                                case "EOS":
+                                    binaryWord |= EOS;
                                     break;
                                     
                                 case "POL":
