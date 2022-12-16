@@ -23,6 +23,12 @@ int main(int argc, char *argv[]){
     registerDevice(&core,&dummy);
 
     core.RAM[0] = 0x08; // LDA I
+    core.RAM[1] = 0x42; // x42
+    core.RAM[2] = 0x0A; // LDB I
+    core.RAM[3] = 0x0; // x69
+    core.RAM[4] = 0x1D; // DEC A
+
+    /*core.RAM[0] = 0x08; // LDA I
     core.RAM[1] = 'A'; // 65
     core.RAM[2] = 0xB;  // LDB A
     core.RAM[3] = 0x0F; // LDM(I) B 0x0100
