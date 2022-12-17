@@ -23,9 +23,9 @@ int main(int argc, char *argv[]){
     registerDevice(&core,&dummy);
 
     core.RAM[0] = 0x08; // LDA I
-    core.RAM[1] = 0x42; // x42
+    core.RAM[1] = 0x1; // x42
     core.RAM[2] = 0x0A; // LDB I
-    core.RAM[3] = 0x0; // x69
+    core.RAM[3] = 0xFF; // x69
     core.RAM[4] = 0x1D; // DEC A
 
     /*core.RAM[0] = 0x08; // LDA I
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
     core.RAM[5] = 0x00; // 0x00
 
     
-    /*core.RAM[0] = 0x21; // CALL I
+    core.RAM[0] = 0x21; // CALL I
     core.RAM[1] = 0xAA; // AA  (AABB)
     core.RAM[2] = 0xBB; // BB
     core.RAM[3] = 0x08; // LDA I
