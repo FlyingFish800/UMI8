@@ -6,7 +6,7 @@
 #define STRUCTS
 
 // Mnemonic for instruction
-typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, LD, RET, NUM_TYPES} TokenType;
+typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, LD, RET, ADD, SUB, JP, JZ, NUM_TYPES} TokenType;
 
 // Memory adressing mode for the instruction
 typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT, INDIRECT_LABEL} AccessingMode;

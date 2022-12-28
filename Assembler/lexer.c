@@ -147,6 +147,14 @@ int parseInstruction(FILE *fp, Program *program){
         instruction.instructionType = RET;
     } else if (strcmp(id, "NOP") == 0){
         instruction.instructionType = NOP;
+    } else if (strcmp(id, "SUB") == 0){
+        instruction.instructionType = SUB;
+    } else if (strcmp(id, "ADD") == 0){
+        instruction.instructionType = ADD;
+    } else if (strcmp(id, "JP") == 0){
+        instruction.instructionType = JP;
+    } else if (strcmp(id, "JZ") == 0){
+        instruction.instructionType = JZ;
     } else {
         printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
         return 0;
