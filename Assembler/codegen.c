@@ -214,8 +214,8 @@ int generateCode(Program *program, FILE *outFile){
         Instruction *ins = &program->Instructions[i];
 
         // Switch on instruction type
-        switch (ins->instructionType) {
-            case LABEL:
+        int type = ins->instructionType;
+        if (strcmp(keywords[type], "LABEL") == 0){
                 // Labels dont change address, but they need their address recorded
                 Label l;
                 l.address = address;
@@ -224,72 +224,66 @@ int generateCode(Program *program, FILE *outFile){
                 // Add label and handle errors if necessary
                 if(addLabel(&lt, l) < 0) return -1;
                 printf("Label %i found '%s' @0x%x\n", lt.length, ins->operands[0].value, l.address);
-                break;
-
-            case ORG:
+                
+        } else if (strcmp(keywords[type], "ORG") == 0){
                 // ORG directly sets address
                 address = decodeImmediate(ins->operands[0].value);
                 if (address == -1) return -1;
                 printf("Organized to %i\n", address);
-                break;
-
-            case GLOBAL:
+                
+        } else if (strcmp(keywords[type], "GLOBAL") == 0){
                 printf("Global entrypoint found: %s\n", ins->operands[0].value);
                 // Global doesnt affect address
-                break;
 
-            case LD:
+        } else if (strcmp(keywords[type], "LD") == 0){
                 // Load can have variable length based on which variant is used. All should have 2 operands though
                 if (ins->operandsLength != 2) {printf("INVALID OPERANDS LENGTH %i FOR LD\n", ins->operandsLength); return -1;}
                 size = handleLD(*ins, &deferredGen, machineCode, address);
                 if (size == -1) return -1;
                 address += size;
-                break;
 
-            case JZ:
+        } else if (strcmp(keywords[type], "JZ") == 0){
                 // Load can have variable length based on which variant is used. All should have 1 operand though
                 if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JZ\n", ins->operandsLength); return -1;}
                 size = handleJZ(*ins, &deferredGen, machineCode, address);
                 if (size == -1) return -1;
                 address += size;
-                break;
 
-            case JP:
+        } else if (strcmp(keywords[type], "JP") == 0){
                 // Load can have variable length based on which variant is used. All should have 1 operand though
                 if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JP\n", ins->operandsLength); return -1;}
                 size = handleJP(*ins, &deferredGen, machineCode, address);
                 if (size == -1) return -1;
                 address += size;
-                break;
 
-            case NOP:
+        } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_NOP;
                 address += 1;
-                break;
 
-            case ADD:
+        } else if (strcmp(keywords[type], "ADD") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_ADD;
                 address += 1;
-                break;
 
-            case SUB:
+        } else if (strcmp(keywords[type], "SUB") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_SUB;
                 address += 1;
-                break;
 
-            case RET:
+        } else if (strcmp(keywords[type], "RET") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_RET;
                 address += 1;
-                break;
 
-            default:
-                printf("UNKNOWN INSTRUCTION %i IN POPULATE LABEL TABLE\n", ins->instructionType);
+        } else {
+                printf("UNKNOWN/UNIMPLEMENTED INSTRUCTION %s WITH %d OPERANDS (", keywords[ins->instructionType], ins->operandsLength);
+                for (int i = 0; i < ins->operandsLength; i++) {
+                    printf(" %s%c", ins->operands[i].value, (i == ins->operandsLength-1) ? ' ' : ',');
+                }
+                
+                printf(") IN POPULATE generateCode\n");
                 return -1;
-                break;
         }
         if (address > max_addr) max_addr = address;
     }

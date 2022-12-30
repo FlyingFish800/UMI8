@@ -5,8 +5,12 @@
 #ifndef STRUCTS
 #define STRUCTS
 
-// Mnemonic for instruction
-typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, LD, RET, ADD, SUB, JP, JZ, NUM_TYPES} TokenType;
+#include <string.h>
+
+// Mnemonic for instructions/commands, and list of keywords to derive indexes
+//typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, CALL, RET, PUSH, LD, JP, JZ, JNZ, JPN, JNN, JPC, JNC, ADD, ADDC, INC, ZRO, SUB, NUM_TYPES} TokenType;
+static char *keywords[] = {"GLOBAL", "ORG", "LABEL", "NOP", "CALL", "RET", "PUSH", "LD", "JP", "JZ", "JNZ", "JPN", "JNN", "JPC", "JNC", "ADD", "ADDC", "INC", "ZRO", "SUB"};
+int keyword_to_type(char *token);
 
 // Memory adressing mode for the instruction
 typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT, INDIRECT_LABEL} AccessingMode;
@@ -19,7 +23,7 @@ typedef struct Operand {
 
 // Instruction token struct for parser. Functions as a queue of Operands and a type
 typedef struct Instruction {
-    TokenType instructionType;
+    int instructionType;
     int operandsLength;
     Operand *operands;
 } Instruction;

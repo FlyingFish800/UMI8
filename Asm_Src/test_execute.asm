@@ -6,7 +6,7 @@ _start:
 _loop:
     LD B, #0x1
     SUB
-    JZ _end
+    JPN _end
     JP _loop
 _end:
     JP _end

@@ -1,2 +1,2 @@
-gcc Main.c lexer.c codegen.c
+gcc Main.c structs.c lexer.c codegen.c
 ./a.out

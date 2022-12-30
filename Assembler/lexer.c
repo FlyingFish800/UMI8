@@ -126,9 +126,10 @@ int parseInstruction(FILE *fp, Program *program){
     if (instruction.operands == NULL) {perror("FAILED INITIAL ALLOCATION OF OPERANDS"); return 0;}
 
     // Determine enum type
+    int type;
     if(id[0] == '_') {
         id[len-1] = '\0';
-        instruction.instructionType = LABEL;
+        instruction.instructionType = keyword_to_type("LABEL");
 
 
         // Push label id as operand
@@ -137,24 +138,8 @@ int parseInstruction(FILE *fp, Program *program){
         op.accesingMode = NONE;
         op.value = id;
         if(!addOperand(&instruction, op)) return 0;
-    } else if (strcmp(id, "GLOBAL") == 0) {
-        instruction.instructionType = GLOBAL;
-    } else if (strcmp(id, "ORG") == 0) {
-        instruction.instructionType = ORG;
-    } else if (strcmp(id, "LD") == 0){
-        instruction.instructionType = LD;
-    } else if (strcmp(id, "RET") == 0){
-        instruction.instructionType = RET;
-    } else if (strcmp(id, "NOP") == 0){
-        instruction.instructionType = NOP;
-    } else if (strcmp(id, "SUB") == 0){
-        instruction.instructionType = SUB;
-    } else if (strcmp(id, "ADD") == 0){
-        instruction.instructionType = ADD;
-    } else if (strcmp(id, "JP") == 0){
-        instruction.instructionType = JP;
-    } else if (strcmp(id, "JZ") == 0){
-        instruction.instructionType = JZ;
+    } else if ((type = keyword_to_type(id)) >= 0) {
+        instruction.instructionType = type;
     } else {
         printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
         return 0;
