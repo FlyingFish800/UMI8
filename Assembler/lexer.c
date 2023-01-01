@@ -142,6 +142,7 @@ int parseInstruction(FILE *fp, Program *program){
         instruction.instructionType = type;
     } else {
         printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
+        program->length = 0;
         return 0;
     }
 
@@ -203,7 +204,7 @@ void parseProgram(FILE *fp, Program *program){
     // Create program so parseInstructions can use size as an index into instruction array TODO: Implement program as stack
     program->length = 0;
     program->Instructions = malloc(0);
-    if (program->Instructions == NULL) printf("NO MEM");
+    if (program->Instructions == NULL) printf("FAILED INITIAL MALLOC FOR INSTRUCTIONS");
 
     // Get file pointer to first valid code block (or comment, which is handled in same code)
     skipWhiteSpace(fp);

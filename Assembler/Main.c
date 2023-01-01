@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
 
     // Path to file to parse
     char *path = "../Asm_Src/test_execute.asm";
+    if (argc > 1) path = argv[1];
 
     // File pointer for file
     FILE *fp = fopen(path, "r");
@@ -26,13 +27,14 @@ int main(int argc, char *argv[]) {
 
     Program program;
     parseProgram(fp, &program);
+    if (program.length <= 0) return 0;
 
     // Close file
     fclose(fp);
 
-    printf("----\n");
+    printf("\n----PARSED-OUTPUT----\n");
     for (size_t i = 0; i < program.length; i++) {
-        printf("%i", program.Instructions[i].instructionType);
+        printf("%s ", keywords[program.Instructions[i].instructionType]);
         for (size_t j = 0; j < program.Instructions[i].operandsLength; j++){
             printf("%s ", program.Instructions[i].operands[j].value);
         }
@@ -40,9 +42,8 @@ int main(int argc, char *argv[]) {
     }
     
     
-    printf("Begining Codegen...\n");
+    printf("\n----BEGINING_CODEGEN----\n");
     generateCode(&program, NULL);
-
 
     // Free parsed instructions
     for (int i = 0; i < program.length; i++) free(program.Instructions[i].operands);

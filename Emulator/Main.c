@@ -13,7 +13,7 @@ int sixnine(){
 }
 
 int main(int argc, char *argv[]){
-    dummy.address = 0x100;
+    dummy.address = 0xFEFF;
     dummy.readDevice = recieveChar;
     dummy.writeDevice = sendChar;
 
@@ -33,9 +33,9 @@ int main(int argc, char *argv[]){
     /*core.RAM[0] = 0x08; // LDA I
     core.RAM[1] = 'A'; // 65
     core.RAM[2] = 0xB;  // LDB A
-    core.RAM[3] = 0x0F; // LDM(I) B 0x0100
-    core.RAM[4] = 0x01; // 0x01
-    core.RAM[5] = 0x00; // 0x00
+    core.RAM[3] = 0x0F; // LDM(I) B 0xFEFF
+    core.RAM[4] = 0xFE; // 0x01
+    core.RAM[5] = 0xFF; // 0x00
 
     
     core.RAM[0] = 0x21; // CALL I
