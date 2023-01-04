@@ -309,8 +309,36 @@ int generateCode(Program *program, FILE *outFile){
         } else if (strcmp(keywords[type], "ORG") == 0){
                 // ORG directly sets address
                 address = decodeImmediate(ins->operands[0].value);
-                if (address == -1) return -1;
+                if (address == -1) {
+                    printf("UNABLE TO DECODE IMMEDIATE VALUE FOR ORG %s\n", ins->operands[0].value);
+                    return -1;
+                }
                 printf("Organized to %i\n", address);
+                
+        } else if (strcmp(keywords[type], "DB") == 0){
+                // ORG directly sets bytes
+                printf("DB: ");
+                for (int i = 0; i < ins->operandsLength; i++){
+                    if (ins->operands[i].accesingMode != IMMEDIATE) {
+                        printf("BAD ACCESSING MODE FOR DB %i\n", ins->operands[i].accesingMode);
+                        return -1;
+                    }
+                    printf("0x%x ", decodeImmediate(ins->operands[i].value) & 0xFF);
+                    machineCode[address++] = decodeImmediate(ins->operands[i].value) & 0xFF;
+                }
+                printf("\n");
+                
+        } else if (strcmp(keywords[type], "ASCII") == 0){
+                // ASCII sets bytes of an ascii string
+                printf("ASCII :");
+                for (int i = 0; i < strlen(ins->operands[0].value); i++){
+                    char c = ins->operands[0].value[i];
+                    if (c != '"') {
+                        printf("%c", c);
+                        machineCode[address++] = c;
+                    }
+                }
+                printf("\n");
                 
         } else if (strcmp(keywords[type], "GLOBAL") == 0){
                 printf("Global entrypoint found: %s\n", ins->operands[0].value);

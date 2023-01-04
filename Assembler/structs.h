@@ -9,11 +9,11 @@
 
 // Mnemonic for instructions/commands, and list of keywords to derive indexes
 //typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, CALL, RET, PUSH, LD, JP, JZ, JNZ, JPN, JNN, JPC, JNC, ADD, ADDC, INC, ZRO, SUB, NUM_TYPES} TokenType;
-static char *keywords[] = {"GLOBAL", "ORG", "LABEL", "NOP", "CALL", "RET", "PUSH", "LD", "JP", "JZ", "JNZ", "JN", "JNN", "JC", "JNC", "ADD", "ADDC", "INC", "ZRO", "SUB"};
+static char *keywords[] = {"GLOBAL", "ORG", "LABEL", "DB", "ASCII", "NOP", "CALL", "RET", "PUSH", "LD", "JP", "JZ", "JNZ", "JN", "JNN", "JC", "JNC", "ADD", "ADDC", "INC", "ZRO", "SUB"};
 int keyword_to_type(char *token);
 
 // Memory adressing mode for the instruction
-typedef enum AccessingMode {NONE, IMMEDIATE, REGISTER, INDIRECT, INDIRECT_LABEL} AccessingMode;
+typedef enum AccessingMode {NONE, IMMEDIATE, STRING, REGISTER, INDIRECT, INDIRECT_LABEL} AccessingMode;
 
 // Operand for the instruciton. Contains adressing mode and value
 typedef struct Operand {

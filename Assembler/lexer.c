@@ -158,13 +158,16 @@ int parseInstruction(FILE *fp, Program *program){
 
         int opLen = 0;
         char *opId = malloc(0);
+        int string = (c == '"');
+
         do {
             opLen+=1;
             opId = realloc(opId,opLen*sizeof(char));
             if (opId == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
             opId[opLen-1] = c;
             c = fgetc(fp);
-        } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
+            if (c == '"') string = 0;
+        } while ((string || !isWhiteSpace(c)) && c != ';' && c != '\n' && c != EOF);
         ungetc(c, fp);
 
         // When buildign strings yourself, dont forget to null terminate them!
@@ -186,6 +189,9 @@ int parseInstruction(FILE *fp, Program *program){
         } else if(operand.value[0] == '[') {
             printf("IND");
             operand.accesingMode = INDIRECT;
+        } else if(operand.value[0] == '"') {
+            printf("STR");
+            operand.accesingMode = STRING;
         } else {
             printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
             return 0;
