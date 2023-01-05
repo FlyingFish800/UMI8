@@ -5,7 +5,7 @@
 #include <memory.h>
 
 // Uncomment for debug printfs
-#define DEBUG
+//#define DEBUG
 
 // Masks
 #define DST 0b11100000

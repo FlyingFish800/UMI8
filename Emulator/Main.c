@@ -1,7 +1,7 @@
 // Alexander Symons | Aug 6 2022 | Emulator | Main.c
 // Driver file for the CPU
 // Inputs: microcode binary
-
+#define DEBUG
 #include "CPU.h"
 #include "IODevices/terminal.h"
 

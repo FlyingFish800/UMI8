@@ -26,7 +26,12 @@ void clock(CPU* cpu){
 
     // Print ctrl info for debugging
     #ifdef DEBUG
-    printf("UCode Index: %d   Flags: %x   Ctrl Word: 0x%x ", MCIndex, cpu->Flags, CTRLWord);
+    char flags_status[4] = "   \0";
+    if ((cpu->Flags & ZERO) == ZERO) flags_status[0] = 'Z';
+    if ((cpu->Flags & NEGATIVE) == NEGATIVE) flags_status[1] = 'N';
+    if ((cpu->Flags & CARRY) == CARRY) flags_status[2] = 'C';
+    flags_status[3] = '\0';
+    printf("UCode Index: %d   Flags: %s   Ctrl Word: 0x%x ", MCIndex, flags_status, CTRLWord);
     dbgCtrlLine(CTRLWord);
     #endif
 
@@ -205,6 +210,7 @@ void loadRam(CPU* cpu, char* path){ // TODO: implementation could be dangerous?
 void loadUCode(CPU* cpu, char* path){
     memset(cpu->Microcode,0,MCODE_SIZE);
     FILE* file = fopen(path, "r");
+    if (file == NULL) printf("UNABLE TO LOAD %s To RAM\n", path);
     fread(cpu->Microcode, 1, MCODE_SIZE, file);
 } // end loadRam
 
