@@ -10,6 +10,14 @@ void exec_instruction(CPU *core){
     } while (core->UStep != 0);
 }
 
+void debug_instruction(CPU *core){
+    do {
+        getchar();
+        clock(core);
+        coreDump(core);
+    } while (core->UStep != 0);
+}
+
 int main(int argc, char *argv[]){
     CPU core;
     reset(&core);
@@ -25,8 +33,8 @@ int main(int argc, char *argv[]){
     core.RAM[4] = 0xB;  // LDB A
 
     core.RAM[5] = 0x21; // CALL I
-    core.RAM[6] = 0xAA; // AA  (AABB)
-    core.RAM[7] = 0xBB; // BB
+    core.RAM[6] = 0xBB; // BB  (AABB)
+    core.RAM[7] = 0xAA; // AA
 
     core.RAM[0xAABB] = 0x22; // RET
 
@@ -39,25 +47,29 @@ int main(int argc, char *argv[]){
     core.RAM[13] = 0x0A; // LDB I
     core.RAM[14] = 'B'; // 65
     core.RAM[15] = 0x0F; // LDM(I) B 0xFEFF
-    core.RAM[16] = 0xFE; // 0x01
-    core.RAM[17] = 0xFF; // 0x00
+    core.RAM[16] = 0xFF; // 0x00
+    core.RAM[17] = 0xFE; // 0x01
 
     core.RAM[18] = 0x08; // LDA I
     core.RAM[19] = 'A'; // 66
-    core.RAM[20] = 0x0D; // LDM(I) A 0xFEFF
-    core.RAM[21] = 0xFD; // 0x01
-    core.RAM[22] = 0xFF; // 0x00
+    core.RAM[20] = 0x0D; // LDM(I) A 0xFDFF
+    core.RAM[21] = 0xFF; // 0x00
+    core.RAM[22] = 0xFD; // 0x01
 
     core.RAM[0xFEED] = 0x80; // 0x00
     core.RAM[0xBEEF] = 0x08; // 0x00
 
     core.RAM[23] = 0x0C; // LD A M(I)
-    core.RAM[24] = 0xFE;
     core.RAM[24] = 0xED;
+    core.RAM[25] = 0xFE;
 
-    core.RAM[25] = 0x0E; // LD B M(I)
-    core.RAM[26] = 0xBE;
+    core.RAM[26] = 0x0E; // LD B M(I)
     core.RAM[27] = 0xEF;
+    core.RAM[28] = 0xBE;
+
+    core.RAM[29] = 0x10; // JP I
+    core.RAM[30] = 0x00; // 0x1000
+    core.RAM[31] = 0x10;
 
 
     printf("%sTesting LDA I: ", RESET);
@@ -109,12 +121,51 @@ int main(int argc, char *argv[]){
 
     printf("%sTesting LD A M(I): ", RESET);
     exec_instruction(&core);
-    if (core.RAM[0xFEED] == 0x80) printf("%s SUCCESS\n", GREEN);
+    if (core.A == 0x80) printf("%s SUCCESS\n", GREEN);
     else {printf("%s FAILED.\n", RED); coreDump(&core);}
 
     printf("%sTesting LD B M(I): ", RESET);
     exec_instruction(&core);
-    if (core.RAM[0xBEEF] == 0x08) printf("%s SUCCESS\n", GREEN);
+    if (core.B == 0x08) printf("%s SUCCESS\n", GREEN);
+    else {printf("%s FAILED.\n", RED); coreDump(&core);}
+
+    printf("%sTesting JP I: ", RESET);
+    exec_instruction(&core);
+    if (core.PCHI == 0x10 && core.PCLO == 0x00) printf("%s SUCCESS\n", GREEN);
+    else {printf("%s FAILED.\n", RED); coreDump(&core);}
+
+    reset(&core);
+    core.RAM[RAM_SIZE-1] = 0xFF; // SP = FF
+
+    core.RAM[0] = 0x08; // LD A, I
+    core.RAM[1] = 0x42; // 0x42
+    core.RAM[2] = 0x07; // LD A, M+A
+    core.RAM[3] = 0x01; // 0x1001
+    core.RAM[4] = 0x10; 
+    core.RAM[0x1043] = 'A';
+
+    exec_instruction(&core);
+
+    printf("%sTesting LD A, M+A: ", RESET);
+    exec_instruction(&core);
+    if (core.A == 'A') printf("%s SUCCESS\n", GREEN);
+    else {printf("%s FAILED.\n", RED); coreDump(&core);}
+
+    reset(&core);
+    core.RAM[RAM_SIZE-1] = 0xFF; // SP = FF
+
+    core.RAM[0] = 0x08; // LD A, I
+    core.RAM[1] = 0xFF; // 0x42
+    core.RAM[2] = 0x07; // LD A, M+A
+    core.RAM[3] = 0x01; // 0x1001
+    core.RAM[4] = 0x10; 
+    core.RAM[0x1100] = 'A';
+
+    exec_instruction(&core);
+
+    printf("%sTesting LD A, M+A (carry): ", RESET);
+    exec_instruction(&core);
+    if (core.A == 'A') printf("%s SUCCESS\n", GREEN);
     else {printf("%s FAILED.\n", RED); coreDump(&core);}
 
 
