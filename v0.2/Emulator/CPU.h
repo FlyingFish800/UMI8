@@ -11,7 +11,7 @@
 #define DST 0b11100000
 #define SRC 0b00011100
 #define ALU 0b00000011
-#define LDNOT 0b00100000
+#define RSEL  0b00100000
 #define LDOR  0b01000000
 #define LDAND 0b10000000
 
@@ -32,27 +32,27 @@
 #define WR  0b11100000
 
 // SRC ctrl lines
-#define BO  0b00000000
+#define NO  0b00000000
 #define EOS 0b00000100
 #define POL 0b00001000
 #define POH 0b00001100
 #define AO  0b00010000
 #define EO  0b00010100
 #define RD  0b00011000
-#define CR  0b00011100
+#define BO  0b00011100
 
 // ALU ctrl lines
 #define ADD 0b00000000
 #define CE  0b00000001
 #define INC 0b00000010
-#define RSA 0b00000011
+#define CR  0b00000011
 
 // Flags
 #define ZERO     0b00000100
 #define NEGATIVE 0b00000010
 #define CARRY    0b00000001
 
-// Sizes of ram and UCode (64k and 8k) (1 kigher because ti doesnt include 64k, 0 thru 64k-1)
+// Sizes of ram and UCode (64k and 8k respectively) (1 Higher because it doesnt include 64k, 0 thru 64k-1)
 #define RAM_SIZE 0x10000
 #define MCODE_SIZE 0x20000
 
@@ -83,7 +83,11 @@ typedef struct CPU {
     byte IR;
 
     // General purpose registers
+    byte *REG_ACTIVE;
     byte A;
+    byte C;
+
+    // Special scratch register
     byte B;
 
     // Internal Bus

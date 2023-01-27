@@ -1,2 +1,2 @@
-gcc -o UMI Main.c CPU.c IODevices/terminal.c
-./UMI
+gcc -o emulator Main.c CPU.c IODevices/terminal.c
+./emulator

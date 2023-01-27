@@ -35,6 +35,12 @@ void clock(CPU* cpu){
     dbgCtrlLine(CTRLWord);
     #endif
 
+    // Every other bit of microcode being zero would load II with 0, a NOP
+    if ((CTRLWord & ALU) == CR) {cpu->UStep = 0; return;}
+
+    // Set active register based on REG SELECT line. TODO: unimplemented
+    cpu->REG_ACTIVE = ((cpu->IR & RSEL) == RSEL) ? &cpu->C : &cpu->A;
+
     // Output to bus
     // Switch on SRC bits for ctrl word. Push appropriate value to bus
     byte flags = 0;
@@ -95,10 +101,9 @@ void clock(CPU* cpu){
             } // end for;
             if (!inhibitRAM) cpu->BUS = cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO];
             break;
-
-        case CR:
-            cpu->UStep = 0;
-            return; // Would have to be implemented as not allowing bus reading, or a specific check for it?
+        
+        case NO:    // No Out: Bus driven by INC. All ones if INC, else all 0s
+            cpu->BUS = ((cpu->BUS & ALU) == INC) ? 0xFF : 0x00;
             break;
         
         default:
@@ -131,18 +136,17 @@ void clock(CPU* cpu){
             
         case AI: // TODO: Probably cant do that in hardware
             cpu->A = cpu->BUS;
-            #ifdef DEBUG
-            printf("A: 0x%x BEFORE !%x |%x &%x\n", cpu->A, ((cpu->IR&LDNOT) == LDNOT), ((cpu->IR&LDOR) == LDOR), ((cpu->IR&LDAND) == LDAND));
-            #endif
-            if ((cpu->IR&LDNOT) == LDNOT) cpu->A = ~cpu->A;
-            if ((cpu->IR&LDOR) == LDOR) cpu->A = cpu->A | cpu->B;
-            if ((cpu->IR&LDAND) == LDAND) cpu->A = cpu->A & cpu->B;
-            #ifdef DEBUG
-            printf("A: 0x%x AFTER\n", cpu->A);
-            #endif
             break;
             
         case BI:
+            #ifdef DEBUG
+            printf("A: 0x%x BEFORE !%x |%x &%x\n", cpu->A, ((cpu->IR&LDNOT) == LDNOT), ((cpu->IR&LDOR) == LDOR), ((cpu->IR&LDAND) == LDAND));
+            #endif
+            if ((cpu->IR&LDOR) == LDOR) cpu->B = cpu->A | cpu->B;
+            if ((cpu->IR&LDAND) == LDAND) cpu->B = cpu->A & cpu->B;
+            #ifdef DEBUG
+            printf("A: 0x%x AFTER\n", cpu->A);
+            #endif
             cpu->B = cpu->BUS;
             break;
             
@@ -183,12 +187,7 @@ void clock(CPU* cpu){
             cpu->PCHI++;
             cpu->PCLO = 0;
         } // end if
-    } // end if
-
-    if ((CTRLWord & ALU) == RSA) {
-        cpu->A = 0;
-    } // end if
-    
+    } // end if    
 
     // Handle microstep
     if (cpu->UStep >= 31) {
@@ -210,15 +209,16 @@ void loadRam(CPU* cpu, char* path){ // TODO: implementation could be dangerous?
 void loadUCode(CPU* cpu, char* path){
     memset(cpu->Microcode,0,MCODE_SIZE);
     FILE* file = fopen(path, "r");
-    if (file == NULL) printf("UNABLE TO LOAD %s To RAM\n", path);
+    if (file == NULL) printf("UNABLE TO LOAD %s TO RAM\n", path);
     fread(cpu->Microcode, 1, MCODE_SIZE, file);
 } // end loadRam
 
 // Print status of cpu internal registers
 void coreDump(CPU* cpu){
+    byte active_reg = ((cpu->IR & RSEL) == RSEL) ? 'C' : 'A';
     printf("IR: 0x%x  Flags: %d  Step: %d\n", cpu->IR, cpu->Flags, cpu->UStep);
     printf("Bus value: 0x%x\n", cpu->BUS);
-    printf("A: 0x%x  B: 0x%x\n", cpu->A, cpu->B);
+    printf("A: 0x%x C: 0x%x  B: 0x%x   Active:%c\n", cpu->A, cpu->C, cpu->B, active_reg);
     printf("MAR: 0x%x%x\n", cpu->MARHI, cpu->MARLO);
     printf("PC: 0x%x%x\n", cpu->PCHI, cpu->PCLO);
     printf("RAM[0x%x]: 0x%x\n", (cpu->MARHI << 8) | cpu->MARLO, cpu->RAM[(cpu->MARHI << 8) | cpu->MARLO]);
@@ -261,8 +261,8 @@ void dbgCtrlLine(byte CTRLWord){
             printf("RD ");
             break;
 
-        case CR:
-            printf("CR ");
+        case NO:
+            printf("NO ");
             break;
         
         default:
@@ -311,8 +311,8 @@ void dbgCtrlLine(byte CTRLWord){
             printf("ADD ");
             break;
 
-        case RSA:
-            printf("RSA ");
+        case CR:
+            printf("CR ");
             break;
 
         case CE:

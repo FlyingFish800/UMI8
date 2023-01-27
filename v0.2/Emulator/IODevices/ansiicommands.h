@@ -30,6 +30,6 @@
 #define ANSIRESET() printf("\x1B[0m")
 #define ANSICOLOR(C, BC) printf("%s%s",C ,BC)
 #define ANSIRAW() system("stty -echo raw")
-#define ANSICOOKED() system("stty echo cooked")
+#define ANSICOOKED() system("stty -echo cooked")
 
 #endif

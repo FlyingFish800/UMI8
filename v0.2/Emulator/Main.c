@@ -22,8 +22,6 @@ int main(int argc, char *argv[]){
     core.RAM[RAM_SIZE-1] = 0xFF; // SP = FF
     registerDevice(&core,&dummy);
 
-    loadRam(&core, "../Assembler/a.bin");
-
     /*core.RAM[0] = 0x08; // LDA I
     core.RAM[1] = 0x1; // x42
     core.RAM[2] = 0x0A; // LDB I
