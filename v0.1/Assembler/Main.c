@@ -10,7 +10,7 @@
 
 // Main entry point
 int main(int argc, char *argv[]) {
-    printf("NOTE: UMI8 Assembler only accepts assembly files with all caps instructions\n");
+    printf("NOTE: Assembler only accepts assembly files with all caps instructions\n");
 
     // Path to file to parse
     char *path = "../Asm_Src/test_execute.asm";

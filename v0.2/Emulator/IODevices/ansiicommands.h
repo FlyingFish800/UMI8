@@ -15,7 +15,7 @@
 #define BWHITE "\x1B[47m"
 
 // Foreground colors
-#define RESET"\x1B[0m"
+#define RESET "\x1B[0m"
 #define BLACK "\x1B[30m"
 #define RED "\x1B[31m"
 #define GREEN "\x1B[32m"

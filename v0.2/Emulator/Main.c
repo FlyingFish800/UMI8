@@ -65,8 +65,6 @@ int main(int argc, char *argv[]){
     core.RAM[0x426C] = 0x42; // 42
     coreDump(&core);*/
 
-    printf("Press enter to emulate a Clock cycle, press q and enter to quit");
-
     char c = 0x0;
     while (c != 'q') {
         // UCode index and step mismatch because clock updates step at end

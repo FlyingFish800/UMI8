@@ -235,7 +235,7 @@ public class MicrocodeGenerator {
 
     public String readFile (String path){    // Load file
 
-        File file = new File("./Microcode/" + path);    // Create refernce to file
+        File file = new File("./" + path);    // Create refernce to file
         Scanner sc; // Define scanner
         String fileContents = "";   // Define string to hold file contents
 
@@ -261,7 +261,7 @@ public class MicrocodeGenerator {
         OutputStream opStream = null;
         try {
             // TODO: 0-127 unchanged, 128 = -128
-            File myFile = new File("./Microcode/" + path);
+            File myFile = new File("./" + path);
             // check if file exist, otherwise create the file before writing
             if (!myFile.exists()) {
                 myFile.createNewFile();
