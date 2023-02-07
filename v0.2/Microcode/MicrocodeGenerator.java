@@ -8,9 +8,9 @@ import java.util.Scanner;
 
 public class MicrocodeGenerator {
     // Ctrl lines
-    public static final int II =  0b00000000;  // Instruction register in
-    public static final int MIH = 0b00100000;  // Memory in high
-    public static final int MIL = 0b01000000;  // Memory in low
+    public static final int MIH = 0b00000000;  // Instruction register in
+    public static final int MIL = 0b00100000;  // Memory in high
+    public static final int II  = 0b01000000;  // Memory in low
     public static final int PIH = 0b01100000;  // Program Counter in high
     public static final int PIL = 0b10000000;  // Program Counter in low
     public static final int AI  = 0b10100000;  // A in
@@ -83,7 +83,8 @@ public class MicrocodeGenerator {
                             System.out.println(index);
                             wordsUsed--;
                         } else{ 
-                            System.out.println("Word");
+                            System.out.print("Word ");
+                            System.out.println(ctrlCode);
                             switch (ctrlCode) {
                                 // DST
                                 case "II":

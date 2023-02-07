@@ -1,11 +1,14 @@
 // Contains implementation of UMI 8 CPU
 #include "CPU.h"
 
+#define DEBUG
+
 // Reset all internal registers and state of CPU.
 // DOESN'T RESET MICROCODE
 void reset(CPU* cpu){
     cpu->A = 0;
     cpu->B = 0;
+    cpu->C = 0;
     cpu->MARHI = 0;
     cpu->MARLO = 0;
     cpu->PCHI = 0;
@@ -40,6 +43,7 @@ void clock(CPU* cpu){
 
     // Set active register based on REG SELECT line. TODO: unimplemented
     cpu->REG_ACTIVE = ((cpu->IR & RSEL) == RSEL) ? &cpu->C : &cpu->A;
+    byte reg_val = *cpu->REG_ACTIVE;
 
     // Output to bus
     // Switch on SRC bits for ctrl word. Push appropriate value to bus
@@ -60,8 +64,8 @@ void clock(CPU* cpu){
         case EOS:
             // TODO: Fix flags
             // Add 1 if inc, also determine carry
-            if((CTRLWord & ALU) == INC) {cpu->BUS = (cpu->A + (~cpu->B & 0xFFFF) + 1) & 0xFFFF;if((cpu->A+(~cpu->B & 0xFFFF)+1)>255) flags|=CARRY;}
-            else {cpu->BUS = (cpu->A + (~cpu->B & 0xFFFF)) & 0xFFFF;if(cpu->A+(~cpu->B & 0xFFFF)>255) flags|=CARRY;}
+            if((CTRLWord & ALU) == INC) {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF) + 1) & 0xFFFF;if((reg_val+(~cpu->B & 0xFFFF)+1)>255) flags|=CARRY;}
+            else {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF)) & 0xFFFF;if(reg_val+(~cpu->B & 0xFFFF)>255) flags|=CARRY;}
             if(cpu->BUS == 0) flags |= ZERO;   // Zero
             if((cpu->BUS&0b10000000)>>7 == 1) flags |= NEGATIVE;   // Negative
             cpu->Flags = flags;
@@ -69,15 +73,15 @@ void clock(CPU* cpu){
 
         case EO:
             // Add 1 if inc, also determine carry
-            if((CTRLWord & ALU) == INC) {cpu->BUS = cpu->A + cpu->B + 1;if((cpu->A+cpu->B+1)>255)flags|=CARRY;}
-            else {cpu->BUS = cpu->A + cpu->B;if((cpu->A+cpu->B)>255)flags|=CARRY;}
+            if((CTRLWord & ALU) == INC) {cpu->BUS = reg_val + cpu->B + 1;if((reg_val+cpu->B+1)>255)flags|=CARRY;}
+            else {cpu->BUS = reg_val + cpu->B;if((reg_val+cpu->B)>255)flags|=CARRY;}
             if(cpu->BUS == 0) flags |= ZERO;   // Zero
             if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
             cpu->Flags = flags;
             break;
 
         case AO:
-            cpu->BUS = cpu->A;
+            cpu->BUS = *cpu->REG_ACTIVE;
             break;
 
         case RD:
@@ -135,17 +139,18 @@ void clock(CPU* cpu){
             break;
             
         case AI: // TODO: Probably cant do that in hardware
-            cpu->A = cpu->BUS;
+            *cpu->REG_ACTIVE = cpu->BUS;
             break;
             
         case BI:
             #ifdef DEBUG
-            printf("A: 0x%x BEFORE !%x |%x &%x\n", cpu->A, ((cpu->IR&LDNOT) == LDNOT), ((cpu->IR&LDOR) == LDOR), ((cpu->IR&LDAND) == LDAND));
+            printf("B: 0x%x BEFORE |%x &%x\n", cpu->B, ((cpu->IR&LDOR) == LDOR), ((cpu->IR&LDAND) == LDAND));
             #endif
-            if ((cpu->IR&LDOR) == LDOR) cpu->B = cpu->A | cpu->B;
-            if ((cpu->IR&LDAND) == LDAND) cpu->B = cpu->A & cpu->B;
+
+            if ((cpu->IR&LDOR) == LDOR) cpu->B = reg_val | cpu->B;
+            if ((cpu->IR&LDAND) == LDAND) cpu->B = reg_val & cpu->B;
             #ifdef DEBUG
-            printf("A: 0x%x AFTER\n", cpu->A);
+            printf("B: 0x%x AFTER\n", cpu->B);
             #endif
             cpu->B = cpu->BUS;
             break;
@@ -184,8 +189,16 @@ void clock(CPU* cpu){
         if (cpu->PCLO < 255) { // Increment least significant
             cpu->PCLO++;
         } else { // Ripple carry
-            cpu->PCHI++;
+            cpu->PCHI++; // Wraps around to 0 from 255
             cpu->PCLO = 0;
+        } // end if
+
+        // Same for MAR bc of CEME
+        if (cpu->MARLO < 255) { // Increment least significant
+            cpu->MARLO++;
+        } else { // Ripple carry
+            cpu->MARHI++; // Wraps around to 0 from 255
+            cpu->MARLO = 0;
         } // end if
     } // end if    
 
@@ -254,7 +267,7 @@ void dbgCtrlLine(byte CTRLWord){
             break;
 
         case AO:
-            printf("AO ");
+            printf("RO ");
             break;
             
         case RD:
@@ -291,7 +304,7 @@ void dbgCtrlLine(byte CTRLWord){
             break;
             
         case AI:
-            printf("AI ");
+            printf("RI ");
             break;
             
         case BI:

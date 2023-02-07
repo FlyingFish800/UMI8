@@ -22,9 +22,9 @@
 // Ctrl lines
 
 // DST strl lines
-#define II  0b00000000
-#define MIH 0b00100000
-#define MIL 0b01000000
+#define MIH 0b00000000
+#define MIL 0b00100000
+#define II  0b01000000
 #define PIH 0b01100000
 #define PIL 0b10000000
 #define AI  0b10100000
