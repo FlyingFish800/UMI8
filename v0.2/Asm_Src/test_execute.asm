@@ -6,9 +6,8 @@ GLOBAL _start
 _start:
     LD A, #0xFF
 _loop:
-    LD B, #0x1
-    ADD
+    ADD #0x01
     JC _end
     JP _loop
 _end:
-    JP #0xb
+    JP _end

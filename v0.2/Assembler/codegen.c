@@ -77,31 +77,14 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
         case REGISTER: // LD reg, ?
             printf("LD R ");
 
-            switch (ins.operands[1].accesingMode) {
-                case REGISTER: // LD reg, reg   1 Byte
-                    printf("LD R, R ");
-                    if (*ins.operands[0].value == 'A'){
-                        if (*ins.operands[1].value !='B') return -1;
-                        printf("LD A, B\n");
-                        code[address] = OP_LDAB;
-                    } else if (*ins.operands[0].value == 'B'){
-                        if (*ins.operands[1].value !='A') return -1;
-                        printf("LD B, A\n");
-                        code[address] = OP_LDBA;
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
-                    }
-                    return 1;
-                    break;
-
                 case IMMEDIATE: // LD reg, I    2 Bytes
                     if (*ins.operands[0].value == 'A'){
                         printf("LD A, I\n");
                         code[address] = OP_LDAI; 
                         code[++address] = decodeImmediate(ins.operands[1].value); 
-                    } else if (*ins.operands[0].value == 'B'){
-                        printf("LD B, I\n");
-                        code[address] = OP_LDBI; 
+                    } else if (*ins.operands[0].value == 'C'){
+                        printf("LD C, I\n");
+                        code[address] = OP_LDAI + OP_ATOC; 
                         code[++address] = decodeImmediate(ins.operands[1].value); 
                     } else {
                         printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
@@ -109,7 +92,7 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
                     return 2;
                     break;
 
-                case INDIRECT:
+                /*case INDIRECT:
                     printf("LD R, [I] ");
                     if (*ins.operands[0].value == 'A'){
                         printf("LD A, [I]\n");
@@ -220,7 +203,7 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
                     return -1;
                     break;
             }
-            break;
+            break;*/
 
         default:
             printf("INVALID/UNIMPLEMENTED OPERAND TYPE FOR LD %i\n", ins.operands[0].accesingMode);
@@ -236,7 +219,7 @@ int handleJP(Instruction ins, LabelTable *deferred, char *code, int address, cha
 
     // Check to see which variant is used
     switch (ins.operands[0].accesingMode) {
-        case IMMEDIATE: // JZ addr
+        case IMMEDIATE: // JP addr
             printf("%s [ADDR]\n", keywords[type]);
             code[address] = opcode; 
             int immediate_address = decodeImmediate(ins.operands[0].value);
@@ -245,7 +228,7 @@ int handleJP(Instruction ins, LabelTable *deferred, char *code, int address, cha
             return 3;
             break;
 
-        case INDIRECT_LABEL: // JZ label
+        case ABSOLUTE_LABEL: // JP label
             printf("%s _label\n", keywords[type]);
             code[address] = opcode;
             code[++address] = 'L';
@@ -344,13 +327,7 @@ int generateCode(Program *program, FILE *outFile){
                 printf("Global entrypoint found: %s\n", ins->operands[0].value);
                 // Global doesnt affect address
 
-        } else if (strcmp(keywords[type], "CALL") == 0){
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JP\n", ins->operandsLength); return -1;}
-                size = handleJP(*ins, &deferredGen, machineCode, address, OP_CALL, type);
-                if (size == -1) return -1;
-                address += size;
-
-        } else if (strcmp(keywords[type], "LD") == 0){
+        }else if (strcmp(keywords[type], "LD") == 0){
                 // Load can have variable length based on which variant is used. All should have 2 operands though
                 if (ins->operandsLength != 2) {printf("INVALID OPERANDS LENGTH %i FOR LD\n", ins->operandsLength); return -1;}
                 size = handleLD(*ins, &deferredGen, machineCode, address);
@@ -364,45 +341,9 @@ int generateCode(Program *program, FILE *outFile){
                 if (size == -1) return -1;
                 address += size;
 
-        } else if (strcmp(keywords[type], "JZ") == 0){
-                // Load can have variable length based on which variant is used. All should have 1 operand though
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JZ\n", ins->operandsLength); return -1;}
-                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JZI, type);
-                if (size == -1) return -1;
-                address += size;
-
-        } else if (strcmp(keywords[type], "JC") == 0){
-                // Load can have variable length based on which variant is used. All should have 1 operand though
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JZ\n", ins->operandsLength); return -1;}
-                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JCI, type);
-                if (size == -1) return -1;
-                address += size;
-
-        } else if (strcmp(keywords[type], "JN") == 0){
-                // Load can have variable length based on which variant is used. All should have 1 operand though
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JP\n", ins->operandsLength); return -1;}
-                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JNI, type);
-                if (size == -1) return -1;
-                address += size;
-
         } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_NOP;
-                address += 1;
-
-        } else if (strcmp(keywords[type], "ADD") == 0){
-                // All these instructions are one byte with no args
-                machineCode[address] = OP_ADD;
-                address += 1;
-
-        } else if (strcmp(keywords[type], "SUB") == 0){
-                // All these instructions are one byte with no args
-                machineCode[address] = OP_SUB;
-                address += 1;
-
-        } else if (strcmp(keywords[type], "RET") == 0){
-                // All these instructions are one byte with no args
-                machineCode[address] = OP_RET;
                 address += 1;
 
         } else {

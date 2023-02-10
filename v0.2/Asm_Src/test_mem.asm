@@ -1,13 +1,12 @@
 ORG #0x0
 GLOBAL _start
 
+; Move an 'A' to the output device, and read key into A reg
 _start:
     LD A, #0x41
     LD _char, A
-    LD B, _char
-    LD A, B
+    LD A, _char
 _end:
-    LD B, A
     JP _end
 
 ORG #0xFEFF

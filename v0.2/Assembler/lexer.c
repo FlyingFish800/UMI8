@@ -178,17 +178,25 @@ int parseInstruction(FILE *fp, Program *program){
         operand.accesingMode = 0;
 
         if(operand.value[0] == '_') {
-            printf("LABEL");
-            operand.accesingMode = INDIRECT_LABEL;
-        } else if(operand.value[0] == 'A' || opId[0] == 'B') {
+            printf("ABS_LABEL");
+            operand.accesingMode = ABSOLUTE_LABEL;
+        } else if(operand.value[0] == 'A' || opId[0] == 'C') {
             printf("REG");
             operand.accesingMode = REGISTER;
         } else if(operand.value[0] == '#') {
             printf("IMM");
             operand.accesingMode = IMMEDIATE;
         } else if(operand.value[0] == '[') {
-            printf("IND");
-            operand.accesingMode = INDIRECT;
+            if(operand.value[1] == '[') { // Double memory lookup [[#0xCAFE]]
+                printf("REL");
+                operand.accesingMode = RELATIVE;
+            }  else if(operand.value[1] == '_') { // Memory lookup of label [_pointer]
+                printf("REL_LABEL");
+                operand.accesingMode = RELATIVE_LABEL;
+            } else { // Single lookup of immediate [#0xCAFE]
+                printf("ABS");
+                operand.accesingMode = ABSOLUTE;
+            }
         } else if(operand.value[0] == '"') {
             printf("STR");
             operand.accesingMode = STRING;

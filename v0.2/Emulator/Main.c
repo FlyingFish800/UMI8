@@ -16,18 +16,8 @@ int main(int argc, char *argv[]){
     reset(&core);
     
     loadUCode(&core, "microcode.bin");
-
-
-    core.RAM[0] = 0x10; // JP I
-    core.RAM[1] = 0x01; // 0x1001
-    core.RAM[2] = 0x10;
-
-
-    core.RAM[0x1001] = 0x28; // LD A I
-    core.RAM[0x1002] = 0x42; // 0x42
-    core.RAM[0x1003] = 0x38; // ADD I
-    core.RAM[0x1004] = 0x69; // 0x69
     
+    loadRam(&core, "../Assembler/a.bin");
 
     char c = 0x0;
     while (c != 'q') {
