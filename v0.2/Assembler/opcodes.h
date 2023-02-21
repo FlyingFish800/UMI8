@@ -5,6 +5,8 @@
 #define OP_ATOC  0x20 
 
 #define OP_NOP    0x00 // NOP
+#define OP_CALLI  0x01 // CALL Immediate. Loses value of R
+#define OP_RET    0x02 // Return from subroutine. Loses value of R
 #define OP_LDAI   0x08 // LD A Immediate
 #define OP_LDAMA  0x09 // LD A Memory Absolute
 #define OP_LDMAA  0x0A // LD Memory Absolute A

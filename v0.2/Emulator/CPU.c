@@ -107,7 +107,7 @@ void clock(CPU* cpu){
             break;
         
         case NO:    // No Out: Bus driven by INC. All ones if INC, else all 0s
-            cpu->BUS = ((cpu->BUS & ALU) == INC) ? 0xFF : 0x00;
+            cpu->BUS = ((CTRLWord & ALU) == INC) ? 0xFF : 0x00;
             break;
         
         default:

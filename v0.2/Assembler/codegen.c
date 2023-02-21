@@ -70,66 +70,40 @@ int decode_indirect(char *indirect){
 
 // Handle all variants of the LD ?, ? instruction and return the size in bytes
 int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ // TODO: All handle functions need char *machinecode to add their opcodes
-    printf("LD ");
+    printf("0x%x LD ", address);
 
     // Check to see which variant is used
     switch (ins.operands[0].accesingMode) {
         case REGISTER: // LD reg, ?
-            printf("LD R ");
-
+            char reg = *ins.operands[0].value;
+            if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR LD reg: %c\n", reg); return -1;}
+            unsigned char to_C = (*ins.operands[0].value == 'A') ? 0 : OP_ATOC;
+            printf("LD %c ", reg);
+            switch (ins.operands[1].accesingMode) {
                 case IMMEDIATE: // LD reg, I    2 Bytes
-                    if (*ins.operands[0].value == 'A'){
-                        printf("LD A, I\n");
-                        code[address] = OP_LDAI; 
-                        code[++address] = decodeImmediate(ins.operands[1].value); 
-                    } else if (*ins.operands[0].value == 'C'){
-                        printf("LD C, I\n");
-                        code[address] = OP_LDAI + OP_ATOC; 
-                        code[++address] = decodeImmediate(ins.operands[1].value); 
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
-                    }
+                    printf("LD %c, I\n", reg);
+                    code[address] = OP_LDAI + to_C; 
+                    code[++address] = decodeImmediate(ins.operands[1].value);
                     return 2;
                     break;
 
-                /*case INDIRECT:
-                    printf("LD R, [I] ");
-                    if (*ins.operands[0].value == 'A'){
-                        printf("LD A, [I]\n");
-                        code[address] = OP_LDAM; 
-                        int immediate_address = decode_indirect(ins.operands[1].value);
-                        code[++address] = (immediate_address&0xFF00)>>8;
-                        code[++address] = (immediate_address&0xFF);
-                    } else if (*ins.operands[0].value == 'B'){
-                        printf("LD B, [I]\n");
-                        code[address] = OP_LDBM; 
-                        int immediate_address = decode_indirect(ins.operands[1].value);
-                        code[++address] = (immediate_address&0xFF00)>>8;
-                        code[++address] = (immediate_address&0xFF);
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
-                        return -1;
-                    }
+                case ABSOLUTE: // LD reg, [imm]
+                    printf("LD %c, [I] ", reg);
+                    code[address] = OP_LDAMA + to_C; // LD A, MemAbs
+                    int immediate_address = decode_indirect(ins.operands[1].value);
+                    code[++address] = (immediate_address&0xFF);
+                    code[++address] = (immediate_address&0xFF00)>>8;
                     return 3;
                     break;
 
-                case INDIRECT_LABEL: // LD reg, _lbl    3 Bytes
+                case ABSOLUTE_LABEL: // LD reg, _lbl    3 Bytes
                     // TODO: double check. I was tired doing this ;P
-                    printf("LD R, _lbl ");
-                    if (*ins.operands[0].value == 'A'){
-                        printf("LD A, _lbl\n");
-                        code[address] = OP_LDAM; 
-                    } else if (*ins.operands[0].value == 'B'){
-                        printf("LD B, _lbl\n");
-                        code[address] = OP_LDBM; 
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
-                        return -1;
-                    }
+                    printf("LD %c, _lbl\n", reg);
+                    code[address] = OP_LDAMA + to_C; 
                     address++;
                     // TODO: Segfault here because something is appended to operands[1].value? Messes with address of _char
                     addLabel(deferred, (Label) {ins.operands[1].value, address}); // TODO: Add new label
-                    return 2;
+                    return 3;
                     break;
                 
                 default:
@@ -139,34 +113,22 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
             }
             break;
 
-        case INDIRECT: // LD [imm], ?   TODO: CHECK IF ZERO PAGE
+        case ABSOLUTE: // LD [imm], ?   TODO: CHECK IF ZERO PAGE
             printf("LD [I] ");
 
             switch (ins.operands[1].accesingMode) {
                 case REGISTER: // LD [imm], R   3 Bytes
-                    printf("LD [I], R ");
-                    if (*ins.operands[1].value == 'A'){
-                        printf("LD [I], A\n");
-                        code[address] = OP_LDMA; 
-                        int immediate_address = decode_indirect(ins.operands[0].value);
-                        code[++address] = (immediate_address&0xFF00)>>8;
-                        code[++address] = (immediate_address&0xFF);
-                    } else if (*ins.operands[1].value == 'B'){
-                        printf("LD [I], B\n");
-                        code[address] = OP_LDMB; 
-                        int immediate_address = decode_indirect(ins.operands[0].value);
-                        code[++address] = (immediate_address&0xFF00)>>8;
-                        code[++address] = (immediate_address&0xFF);
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD reg, %s\n", ins.operands[0].value);
-                        return -1;
-                    }
-                    return 3;
-                    break;
+                    char reg = *ins.operands[1].value;
+                    if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR LD [i], reg: %c\n", reg); return -1;}
+                    unsigned char to_C = (*ins.operands[1].value == 'A') ? 0 : OP_ATOC;
 
-                case IMMEDIATE: // LD [imm], I  4 Bytes
-                    printf("LD [I], I   UNIMPLEMENTED!!!!\n");
-                    return 4;
+                    printf("LD [I], %c \n", reg);
+
+                    code[address] = OP_LDMAA + to_C; 
+                    int immediate_address = decode_indirect(ins.operands[0].value);
+                    code[++address] = (immediate_address&0xFF);
+                    code[++address] = (immediate_address&0xFF00)>>8;
+                    return 3;
                     break;
                 
                 default:
@@ -176,24 +138,17 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
             }
             break;
 
-        case INDIRECT_LABEL:
+        case ABSOLUTE_LABEL:
             printf("LD _lbl ");
 
             switch (ins.operands[1].accesingMode) {
                 case REGISTER: // LD _lbl, R   3 Bytes
-                    printf("LD _lbl, R ");
-                    if (*ins.operands[1].value == 'A'){
-                        printf("LD _lbl, A\n");
-                        code[address] = OP_LDMA; 
-                        
-                    } else if (*ins.operands[1].value == 'B'){
-                        printf("LD _lbl, B\n");
-                        code[address] = OP_LDMB; 
-                        
-                    } else {
-                        printf("INVALID/UNIMPLEMENTED REGISTER FOR LD _lbl, %s\n", ins.operands[0].value);
-                        return -1;
-                    }
+                    char reg = *ins.operands[1].value;
+                    if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR LD _lbl, reg: %c\n", reg); return -1;}
+                    unsigned char to_C = (*ins.operands[1].value == 'A') ? 0 : OP_ATOC;
+
+                    printf("LD _lbl, %c\n", reg);
+                    code[address] = OP_LDMAA + to_C;
                     addLabel(deferred, (Label) {ins.operands[0].value, ++address}); // TODO: Add new label
                     return 3;
                     break;
@@ -203,7 +158,7 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
                     return -1;
                     break;
             }
-            break;*/
+            break;
 
         default:
             printf("INVALID/UNIMPLEMENTED OPERAND TYPE FOR LD %i\n", ins.operands[0].accesingMode);
@@ -215,7 +170,7 @@ int handleLD(Instruction ins, LabelTable *deferred, char *code, int address){ //
 // Handle variants of the JP instruction (all fit op <imm> template including CALL,  
 // and necessitate deferred generation for labels) and return size in bytes
 int handleJP(Instruction ins, LabelTable *deferred, char *code, int address, char opcode, char type){
-    printf("%s ", keywords[type]);
+    printf("0x%x %s ", address, keywords[type]);
 
     // Check to see which variant is used
     switch (ins.operands[0].accesingMode) {
@@ -223,8 +178,8 @@ int handleJP(Instruction ins, LabelTable *deferred, char *code, int address, cha
             printf("%s [ADDR]\n", keywords[type]);
             code[address] = opcode; 
             int immediate_address = decodeImmediate(ins.operands[0].value);
-            code[++address] = (immediate_address&0xFF00)>>8;
             code[++address] = (immediate_address&0xFF);
+            code[++address] = (immediate_address&0xFF00)>>8;
             return 3;
             break;
 
@@ -300,7 +255,7 @@ int generateCode(Program *program, FILE *outFile){
                 
         } else if (strcmp(keywords[type], "DB") == 0){
                 // ORG directly sets bytes
-                printf("DB: ");
+                printf("0x%x DB: ", address);
                 for (int i = 0; i < ins->operandsLength; i++){
                     if (ins->operands[i].accesingMode != IMMEDIATE) {
                         printf("BAD ACCESSING MODE FOR DB %i\n", ins->operands[i].accesingMode);
@@ -341,10 +296,64 @@ int generateCode(Program *program, FILE *outFile){
                 if (size == -1) return -1;
                 address += size;
 
+        } else if (strcmp(keywords[type], "CALL") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR CALL\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_CALLI, type);
+                if (size == -1) return -1;
+                address += size;
+
         } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
                 machineCode[address] = OP_NOP;
                 address += 1;
+
+        } else if (strcmp(keywords[type], "RET") == 0){
+                // All these instructions are one byte with no args
+                machineCode[address] = OP_RET;
+                address += 1;
+
+        } else if (strcmp(keywords[type], "ADD") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {
+                    printf("ADD MUST BE OF FORM ADD <reg>, <imm>");
+                    return -1;
+                }
+
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR ADD <reg>, <imm>: %c\n", reg); return -1;}
+                unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address++] = OP_ADDIA + to_C;
+                machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
+
+        } else if (strcmp(keywords[type], "ADDC") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {
+                    printf("ADD MUST BE OF FORM ADDC <reg>, <imm>");
+                    return -1;
+                }
+
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR ADDC <reg>, <imm>: %c\n", reg); return -1;}
+                unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address++] = OP_ADDCIA + to_C;
+                machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
+
+        } else if (strcmp(keywords[type], "SUB") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {
+                    printf("ADD MUST BE OF FORM SUB <reg>, <imm>");
+                    return -1;
+                }
+
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR SUB <reg>, <imm>: %c\n", reg); return -1;}
+                unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address++] = OP_SUBIA + to_C;
+                machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
         } else {
                 printf("UNKNOWN/UNIMPLEMENTED INSTRUCTION %s WITH %d OPERANDS (", keywords[ins->instructionType], ins->operandsLength);
@@ -382,8 +391,8 @@ int generateCode(Program *program, FILE *outFile){
         // TODO: Find address of labels in deffered label and put found label address at deffered label and deffered+1
         int label_address = -1;
         if ((label_address = get_label_address(&lt, current_label.identifier)) >= 0){
-            machineCode[current_label.address] = (label_address&0xFF00) >> 8;
-            machineCode[current_label.address+1] = label_address&0xFF;
+            machineCode[current_label.address] = label_address&0xFF;
+            machineCode[current_label.address+1] = (label_address&0xFF00) >> 8;
         } else {
             printf("COULDN'T FIND LABEL %s\n", current_label.identifier);
             return -1;
