@@ -313,6 +313,28 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address] = OP_RET;
                 address += 1;
 
+        } else if (strcmp(keywords[type], "PUSH") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR PUSH\n", ins->operandsLength); return -1;}
+                
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PUSH reg: %c\n", reg); return -1;}
+                unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address] = OP_PUSHR + to_C;
+                address += 1;
+
+        } else if (strcmp(keywords[type], "POP") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR POP\n", ins->operandsLength); return -1;}
+                
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR POP reg: %c\n", reg); return -1;}
+                unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address] = OP_POPR + to_C;
+                address += 1;
+
         } else if (strcmp(keywords[type], "ADD") == 0){
                 // All these instructions are one byte with no args
                 if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {

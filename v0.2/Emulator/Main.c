@@ -27,7 +27,14 @@ int main(int argc, char *argv[]){
     loadRam(&core, "../Assembler/a.bin");
     core.RAM[0xFFFF] = 0xFE;
 
-    /*
+    /*core.RAM[0] = 0x08; // LD A, 0x42
+    core.RAM[1] = 0x42;
+    core.RAM[2] = 0x3; // PUSH A
+    core.RAM[3] = 0x08; // LD A, 0x42
+    core.RAM[4] = 0x69;
+    core.RAM[5] = 0x4; // POP A
+
+    
     core.RAM[0x0] = 0x1; // CALL 0xABCD
     core.RAM[0x1] = 0xCD;
     core.RAM[0x2] = 0xAB;

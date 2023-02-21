@@ -7,6 +7,8 @@
 #define OP_NOP    0x00 // NOP
 #define OP_CALLI  0x01 // CALL Immediate. Loses value of R
 #define OP_RET    0x02 // Return from subroutine. Loses value of R
+#define OP_PUSHR  0x03 // Push register R to stack
+#define OP_POPR   0x04 // Pop top value from stack to R
 #define OP_LDAI   0x08 // LD A Immediate
 #define OP_LDAMA  0x09 // LD A Memory Absolute
 #define OP_LDMAA  0x0A // LD Memory Absolute A

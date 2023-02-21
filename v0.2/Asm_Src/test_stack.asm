@@ -2,7 +2,13 @@ ORG #0x0
 GLOBAL _start
 
 _start:
+    LD A, #0x42
+    PUSH A
+    LD C, #0xAA
+    PUSH C
     CALL _targ_1
+    POP A
+    POP C
 _end:
     JP _end
 
