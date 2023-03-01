@@ -296,6 +296,13 @@ int generateCode(Program *program, FILE *outFile){
                 if (size == -1) return -1;
                 address += size;
 
+        } else if (strcmp(keywords[type], "JZ") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JPZ\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JPZI, type);
+                if (size == -1) return -1;
+                address += size;
+
         } else if (strcmp(keywords[type], "CALL") == 0){
                 // Load can have variable length based on which variant is used. All should have 1 operand though
                 if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR CALL\n", ins->operandsLength); return -1;}
@@ -377,6 +384,20 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address++] = OP_SUBIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
+        } else if (strcmp(keywords[type], "CMP") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {
+                    printf("ADD MUST BE OF FORM CMP <reg>, <imm>");
+                    return -1;
+                }
+
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR SUB <reg>, <imm>: %c\n", reg); return -1;}
+                unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address++] = OP_CMPIA + to_C;
+                machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
+
         } else {
                 printf("UNKNOWN/UNIMPLEMENTED INSTRUCTION %s WITH %d OPERANDS (", keywords[ins->instructionType], ins->operandsLength);
                 for (int i = 0; i < ins->operandsLength; i++) {
@@ -409,7 +430,7 @@ int generateCode(Program *program, FILE *outFile){
     
     for (int i = 0; i < deferredGen.length; i++){
         Label current_label = deferredGen.labels[i];
-        printf("DEF: Inject addr of %s @ address %d\n", current_label.identifier, current_label.address);
+        printf("DEF: Inject addr of %s @ address 0x%x\n", current_label.identifier, current_label.address);
         // TODO: Find address of labels in deffered label and put found label address at deffered label and deffered+1
         int label_address = -1;
         if ((label_address = get_label_address(&lt, current_label.identifier)) >= 0){
@@ -424,7 +445,7 @@ int generateCode(Program *program, FILE *outFile){
     
     FILE *fp = fopen("./a.bin", "w");
 
-    printf("MAX ADDRESS: %d\n", max_addr);
+    printf("MAX ADDRESS: 0x%x\n", max_addr);
 
     for (int i = 0; i < max_addr; i++){
         fputc(machineCode[i], fp);

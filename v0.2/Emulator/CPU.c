@@ -1,7 +1,9 @@
 // Contains implementation of UMI 8 CPU
 #include "CPU.h"
 
-#define DEBUG
+#ifdef DEBUG
+#warning "Debug on"
+#endif
 
 // Reset all internal registers and state of CPU.
 // DOESN'T RESET MICROCODE
@@ -21,7 +23,7 @@ void reset(CPU* cpu){
 } // end reset
 
 // Emulate one clock cycle of the cpu
-void clock(CPU* cpu){
+void clock_core(CPU* cpu){
     // Figure out ctrl byte (Instruction register is &|!OOOOO where first 3 are loadA modifiers, rest are opcode)
     // Ucode indexing is formatted IIIIIFFFSSSSS where S = UStep, I = instruction, F = flags (ZNC)
     unsigned short MCIndex = ((cpu->IR & 0b11111) << 8) | ((cpu->Flags & 0b111) << 5) | (cpu->UStep & 0b11111);

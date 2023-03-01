@@ -4,8 +4,10 @@
 #include <string.h>
 #include <memory.h>
 
-// Uncomment for debug printfs
 //#define DEBUG
+
+// Uncomment for debug printfs
+#define DEBUG
 
 // Masks
 #define DST 0b11100000
@@ -55,6 +57,9 @@
 // Sizes of ram and UCode (64k and 8k respectively) (1 Higher because it doesnt include 64k, 0 thru 64k-1)
 #define RAM_SIZE 0x10000
 #define MCODE_SIZE 0x20000
+
+// Location of 'UART' out
+#define SERIAL_OUT  0xFEFF
 
 // 8 bit number
 typedef unsigned char byte;
@@ -113,7 +118,7 @@ typedef struct CPU {
 } CPU;
 
 // Function to emulate one clock cycle
-void clock(CPU* cpu);
+void clock_core(CPU* cpu);
 
 // Function to reset internal state of the CPU
 void reset(CPU* cpu);

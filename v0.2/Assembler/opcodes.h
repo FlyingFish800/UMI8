@@ -13,6 +13,7 @@
 #define OP_LDAMA  0x09 // LD A Memory Absolute
 #define OP_LDMAA  0x0A // LD Memory Absolute A
 #define OP_JPI    0x10 // Jump to immediate address
+#define OP_JPZI   0x11 // Jump to immediate address
 #define OP_ADDIA  0x18 // Add immediate value to A
 #define OP_ADDCIA 0x19 // Add w/ carry immediate value to 
 #define OP_INCA   0x1A // Increment A

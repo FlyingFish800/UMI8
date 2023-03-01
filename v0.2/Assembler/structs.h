@@ -9,7 +9,7 @@
 
 // Mnemonic for instructions/commands, and list of keywords to derive indexes
 //typedef enum TokenType {GLOBAL, ORG, LABEL, NOP, CALL, RET, PUSH, LD, JP, JZ, JNZ, JPN, JNN, JPC, JNC, ADD, ADDC, INC, ZRO, SUB, NUM_TYPES} TokenType;
-static char *keywords[] = {"GLOBAL", "ORG", "LABEL", "DB", "ASCII", "NOP", "CALL", "RET", "PUSH", "POP", "LD", "JP", "ADD", "ADDC", "INC", "ZERO", "SUB"};
+static char *keywords[] = {"GLOBAL", "ORG", "LABEL", "DB", "ASCII", "NOP", "CALL", "RET", "PUSH", "POP", "LD", "JP", "JZ", "ADD", "ADDC", "INC", "ZERO", "SUB", "CMP"};
 int keyword_to_type(char *token);
 
 // Memory adressing mode for the instruction
