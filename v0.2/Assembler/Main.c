@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     printf("NOTE: Assembler only accepts assembly files with all caps instructions\n");
 
     // Path to file to parse
-    char *path = "../Asm_Src/test_serial.asm";
+    char *path = "../Asm_Src/test_macro.asm";
     if (argc > 1) path = argv[1];
 
     // File pointer for file

@@ -8,8 +8,8 @@ o10***, POL MIL, POH MIH, RD II CE, RD AI CE, CR  ; LD R I
 o11***, POL MIL, POH MIH, RD II CE, RD BI CE, RD MIH CE, BO MIL, RD AI, CR  ; LD R MA
 o12***, POL MIL, POH MIH, RD II CE, RD BI CE, RD MIH CE, BO MIL, WR AO, CR  ; LD MA R
 o20***, POL MIL, POH MIH, RD II CE, RD BI CE, RD PIH, BO PIL, CR  ; JP I
-o21**+, POL MIL, POH MIH, RD II CE, RD BI CE, RD PIH, BO PIL, CR  ; JP I (zero set)
-o21**-, POL MIL, POH MIH, RD II CE, CR  ; JP I (zero not set)
+o21+**, POL MIL, POH MIH, RD II CE, RD BI CE, RD PIH, BO PIL, CR  ; JZ I (zero set)
+o21-**, POL MIL, POH MIH, RD II CE, POL PIL CE, POL PIL CE, CR  ; JZ I (zero not set)
 o30***, POL MIL, POH MIH, RD II CE, RD BI CE, EO AI, CR  ; ADD I
 o31**+, POL MIL, POH MIH, RD II CE, RD BI CE, EO AI INC, CR  ; ADDC I (carry set)
 o31**-, POL MIL, POH MIH, RD II CE, RD BI CE, EO AI, CR  ; ADDC I (carry not set)

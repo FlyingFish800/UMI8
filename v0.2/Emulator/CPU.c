@@ -168,7 +168,7 @@ void clock_core(CPU* cpu){
                     if(cpu->devices[i].writeDevice == NULL) continue; // Write mem as normal if no handler
                     else{   // otherwise Write device
                         #ifdef DEBUG
-                        printf("Device @[%d] write (%d)\n", cpu->devices[i].address, cpu->BUS);
+                        printf("Device @[0x%x] write (0x%x/%c)\n", cpu->devices[i].address, cpu->BUS, cpu->BUS);
                         #endif
                         inhibitRAM = 1;
                         cpu->devices[i].writeDevice(cpu->BUS);

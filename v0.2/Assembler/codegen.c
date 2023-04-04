@@ -244,7 +244,7 @@ int generateCode(Program *program, FILE *outFile){
                 if(addLabel(&lt, l) < 0) return -1;
                 printf("Label %i found '%s' @0x%x\n", lt.length, ins->operands[0].value, l.address);
                 
-        } else if (strcmp(keywords[type], "ORG") == 0){
+        } else if (strcmp(keywords[type], ".ORG") == 0){
                 // ORG directly sets address
                 address = decodeImmediate(ins->operands[0].value);
                 if (address == -1) {
@@ -253,7 +253,7 @@ int generateCode(Program *program, FILE *outFile){
                 }
                 printf("Organized to %i\n", address);
                 
-        } else if (strcmp(keywords[type], "DB") == 0){
+        } else if (strcmp(keywords[type], ".DB") == 0){
                 // ORG directly sets bytes
                 printf("0x%x DB: ", address);
                 for (int i = 0; i < ins->operandsLength; i++){
@@ -266,7 +266,7 @@ int generateCode(Program *program, FILE *outFile){
                 }
                 printf("\n");
                 
-        } else if (strcmp(keywords[type], "ASCII") == 0){
+        } else if (strcmp(keywords[type], ".ASCII") == 0){
                 // ASCII sets bytes of an ascii string
                 printf("ASCII :");
                 for (int i = 0; i < strlen(ins->operands[0].value); i++){
@@ -278,7 +278,7 @@ int generateCode(Program *program, FILE *outFile){
                 }
                 printf("\n");
                 
-        } else if (strcmp(keywords[type], "GLOBAL") == 0){
+        } else if (strcmp(keywords[type], ".GLOBAL") == 0){
                 printf("Global entrypoint found: %s\n", ins->operands[0].value);
                 // Global doesnt affect address
 

@@ -143,6 +143,7 @@ int parseInstruction(FILE *fp, Program *program){
     } else {
         printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
         program->length = 0;
+        program->length = -1;
         return 0;
     }
 
@@ -200,8 +201,12 @@ int parseInstruction(FILE *fp, Program *program){
         } else if(operand.value[0] == '"') {
             printf("STR");
             operand.accesingMode = STRING;
+        } else if(operand.value[0] == '<') {
+            printf("MACRO ARG");
+            operand.accesingMode = MACRO_ARG;
         } else {
             printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
+            program->length = -1;
             return 0;
         }
 

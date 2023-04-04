@@ -3,8 +3,9 @@
 // Inputs: microcode binary
 #include "CPU.h"
 #include "IODevices/terminal.h"
+#include "IODevices/ansiicommands.h"
 
-//#define THREADED
+#define THREADED
 
 #ifdef THREADED
 #warning "Multithreading on"
@@ -109,6 +110,8 @@ int main(int argc, char *argv[]){
     pthread_t thread_id;
     pthread_create(&thread_id, NULL, run_core_threaded, NULL);
 
+    ANSIRAW();
+
     char c = 0x0;
     while (c != 'q') {
         c = getchar();
@@ -129,6 +132,8 @@ int main(int argc, char *argv[]){
     pthread_mutex_unlock(&run_status_lock);
 
     pthread_join(thread_id, NULL);
+
+    ANSICOOKED();
 
     printf("Clocks: %d\n", clocks);
 

@@ -7,7 +7,7 @@ _start:
     JZ _char_out
     JP _start
 _char_out:
-    LD A, _serial_out
+    LD _serial_out, A
 _end:
     JP _end
 
