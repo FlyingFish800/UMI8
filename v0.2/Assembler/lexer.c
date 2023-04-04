@@ -204,6 +204,15 @@ int parseInstruction(FILE *fp, Program *program){
         } else if(operand.value[0] == '<') {
             printf("MACRO ARG");
             operand.accesingMode = MACRO_ARG;
+
+            // Trim trailing '>'
+            char *start = ++operand.value;
+            while (*(start++) != '>');
+            *(--start) = '\0';
+        } else if (instruction.instructionType == keyword_to_type(".MACRO") && instruction.operandsLength == 0){
+            // First operand of a macro is the identifier
+            printf("MACRO ID");
+            operand.accesingMode = MACRO_ID;
         } else {
             printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
             program->length = -1;

@@ -13,7 +13,7 @@ static char *keywords[] = {".GLOBAL", ".ORG", "LABEL", ".DB", ".MACRO", ".END", 
 int keyword_to_type(char *token);
 
 // Memory adressing mode for the instruction
-typedef enum AccessingMode {NONE, IMMEDIATE, STRING, REGISTER, ABSOLUTE, ABSOLUTE_LABEL, RELATIVE, RELATIVE_LABEL, MACRO_ARG} AccessingMode;
+typedef enum AccessingMode {NONE, IMMEDIATE, STRING, REGISTER, ABSOLUTE, ABSOLUTE_LABEL, RELATIVE, RELATIVE_LABEL, MACRO_ARG, MACRO_ID} AccessingMode;
 
 // Operand for the instruciton. Contains adressing mode and value
 typedef struct Operand {
