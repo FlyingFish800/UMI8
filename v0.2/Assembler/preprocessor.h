@@ -17,4 +17,8 @@ typedef struct MacroTable {
     Macro *macros;
 } MacroTable;
 
+int registerMacroOperand(Macro *m, Operand o);
+
+int registerMacro(MacroTable *mt, Macro m, int returnCode);
+
 #endif

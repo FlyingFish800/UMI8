@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "structs.h"
 #include "lexer.h"
+#include "preprocessor.h"
 #include "codegen.h"
 
 // Main entry point
