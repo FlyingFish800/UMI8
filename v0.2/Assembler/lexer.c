@@ -67,24 +67,6 @@ int getNextBlock(FILE *fp){
     }
 }
 
-// Push an operand to the Instruction's stack of operands. Return 1 to continue
-int addOperand(Instruction *i, Operand o){
-    i->operandsLength += 1;
-    i->operands = realloc(i->operands, sizeof(Operand)*i->operandsLength);
-    if (i->operands == NULL) {perror("COULDNT REALLOC OPERANDS"); return 0;}
-    i->operands[i->operandsLength-1] = o;
-    return 1;
-}
-
-// Push an instruction to the program (stack of instructions). Return 1 to continue
-int addInstruction(Program *p, Instruction i, int returnCode){
-    p->length += 1;
-    p->Instructions = realloc(p->Instructions, sizeof(Instruction)*p->length);
-    if (p->Instructions == NULL) {perror("COULDNT REALLOC INSTRUCTIONS"); return 0;}
-    p->Instructions[p->length-1] = i;
-    return returnCode;
-}
-
 // Read an instruction, and add it to the instructions pointer. Return 1 if there is more to parse, 0 for EOF
 int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
     /* Handles lines that are just \n or comments.
@@ -177,7 +159,14 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
             program->length = -1;
             return 0;
-        } else printf("%s IS A VALID MACRO.\n", id);
+        } else {
+            printf("%s IS A VALID MACRO.\n", id);
+            instruction.instructionType = keyword_to_type("INVOKE_MACRO");
+            Operand name;
+            name.accesingMode = MACRO_ID;
+            name.value = id;
+            addOperand(&instruction, name);
+        }
     }
 
     printf("INS <%s>",id);
@@ -312,8 +301,19 @@ void parseProgram(FILE *fp, Program *program){
         /* code */
     }
 
-    printf("Macros found: %d\n", valid_macros.length);
+    // Print macros
+    printf("\nMacros found: %d\n", valid_macros.length);
     for (int i = 0; i < valid_macros.length; i++) printf("MACRO %d: %s", i+1, valid_macros.macros[i].identifier);
 
     printf("\n");
+
+    // Preprocess Program
+    printf("\n----BEGINING-PREPROCESSING----\n");
+    Program processed;
+    processed.length = 0;
+    processed.Instructions = malloc(0);
+    
+    printf("return: %d\n", preprocessProgram(program, valid_macros, &processed));
+    program = &processed;
+
 }

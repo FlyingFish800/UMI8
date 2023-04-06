@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    printf("\n----BEGINNING-LEXING----\n");
     Program program;
     parseProgram(fp, &program);
     if (program.length <= 0) return 0;

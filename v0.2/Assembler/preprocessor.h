@@ -21,4 +21,6 @@ int registerMacroOperand(Macro *m, Operand o);
 
 int registerMacro(MacroTable *mt, Macro m, int returnCode);
 
+int preprocessProgram(Program *program, MacroTable macros, Program *processed);
+
 #endif

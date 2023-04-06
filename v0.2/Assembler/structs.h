@@ -46,4 +46,9 @@ typedef struct LabelTable {
     Label *labels;
 } LabelTable;
 
+
+int addOperand(Instruction *i, Operand o);
+
+int addInstruction(Program *p, Instruction i, int returnCode);
+
 #endif

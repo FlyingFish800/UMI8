@@ -398,6 +398,11 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address++] = OP_CMPIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
+        } else if (strcmp(keywords[type], ".MACRO") == 0 || strcmp(keywords[type], ".END") == 0){
+            // Error for directives missed by preprocessor
+            printf("ERROR: UNCAUGHT PREPROCESSOR DIRECTIVE %s\n", keywords[type]);
+            return -1;
+            
         } else {
                 printf("UNKNOWN/UNIMPLEMENTED INSTRUCTION %s WITH %d OPERANDS (", keywords[ins->instructionType], ins->operandsLength);
                 for (int i = 0; i < ins->operandsLength; i++) {
