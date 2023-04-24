@@ -281,8 +281,13 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 
 // Parse file given to function
 void parseProgram(FILE *fp, Program *program){
+    // Create program that get freed for the intermediate lexing
+    Program unprocessed;
+    unprocessed.length = 0;
+    unprocessed.Instructions = malloc(0);
+    if (unprocessed.Instructions == NULL) printf("FAILED INITIAL MALLOC FOR UNPROCESSED INSTRUCTIONS");
 
-    // Create program so parseInstructions can use size as an index into instruction array TODO: Implement program as stack
+    // Initialize the program to be returned containing processed instructions
     program->length = 0;
     program->Instructions = malloc(0);
     if (program->Instructions == NULL) printf("FAILED INITIAL MALLOC FOR INSTRUCTIONS");
@@ -296,7 +301,7 @@ void parseProgram(FILE *fp, Program *program){
     skipWhiteSpace(fp);
 
     // ParseInstruction for every line of file, handles comments and "\n". breaks look when EOF encoutnered
-    while (parseInstruction(fp, program, &valid_macros)){
+    while (parseInstruction(fp, &unprocessed, &valid_macros)){
         printf("\n");
         /* code */
     }
@@ -309,11 +314,11 @@ void parseProgram(FILE *fp, Program *program){
 
     // Preprocess Program
     printf("\n----BEGINING-PREPROCESSING----\n");
-    Program processed;
-    processed.length = 0;
-    processed.Instructions = malloc(0);
-    
-    printf("return: %d\n", preprocessProgram(program, valid_macros, &processed));
-    program = &processed;
+    printf("Preprocessing returned: %d\n", preprocessProgram(&unprocessed, valid_macros, program));
+    printf("%d\n", program->length);
+
+    // Free unprocessed instructions array pointer
+    // DON'T free anything else, those instructions are put directly into new program
+    free(unprocessed.Instructions);
 
 }

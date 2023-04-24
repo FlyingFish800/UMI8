@@ -447,16 +447,12 @@ int generateCode(Program *program, FILE *outFile){
 
         }
     }
-    
-    FILE *fp = fopen("./a.bin", "w");
 
     printf("MAX ADDRESS: 0x%x\n", max_addr);
 
     for (int i = 0; i < max_addr; i++){
-        fputc(machineCode[i], fp);
+        fputc(machineCode[i], outFile);
     }
-
-    fclose(fp);
 
     return 0;
 }

@@ -30,37 +30,38 @@ int registerMacroOperand(Macro *m, Operand o){
 
 // Handle a single instruction. Put results into processedProgram, provided valid macros, and the current macro if applicable
 // Returns >0 if no errors
-int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, char **currentMacro, Instruction instruction){
+int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, Instruction instruction){
     /*  Handles individual instructions in a program:
      *  - Add as is if no processing necessary
      *  - Expand macros if necessary
      *  - TODO: Define Constants if necessary
      *  - TODO: Evaluate expressions if necessary
      */
-    
+    static char *currentMacro;
+
     if (instruction.instructionType == keyword_to_type(".MACRO")) {
         // Handle Macro definitions
 
         char *macroName = instruction.operands[0].value;    // First operand is name
 
         // Gaurd against nested macro definitions
-        if (*currentMacro != NULL) {
-            printf("CANNOT DEFINE MACRO INSIDE MACRO. %s FOUND INSIDE %s\n", macroName, *currentMacro);
+        if (currentMacro != NULL) {
+            printf("CANNOT DEFINE MACRO INSIDE MACRO. %s FOUND INSIDE %s\n", macroName, currentMacro);
             return -1;
         }
-        *currentMacro = instruction.operands[0].value;
+        currentMacro = instruction.operands[0].value;
 
-        printf("Current macro set to %s\n", *currentMacro);
+        printf("Current macro set to %s\n", currentMacro);
 
     } else if (instruction.instructionType == keyword_to_type(".END")) {
         // Gaurd against extra .ENDs
-        if (*currentMacro == NULL) {
+        if (currentMacro == NULL) {
             printf("ORPHANED .END FOUND\n");
             return -1;
         }
 
-        printf("Exiting macro %s\n", *currentMacro);
-        *currentMacro = NULL;
+        printf("Exiting macro %s\n", currentMacro);
+        currentMacro = NULL;
     } else if (instruction.instructionType == keyword_to_type("INVOKE_MACRO")) {
         printf("TODO: Validate macro\n");
     } else {
@@ -73,15 +74,16 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, ch
 
 // Turn lexed token stream into a processed stream fit for generation
 int preprocessProgram(Program *program, MacroTable macros, Program *processed){
-    // TODO: Take in multiple programs liek gcc and process instruction for all
+    // TODO: Take in multiple programs like gcc and process instruction for all
+    // TODO: free unused instructions
 
     // Run every instruction in program through preprocessor and put result in processed
-    char *currentMacro = NULL;
     for (int i = 0; i < program->length; i++) {
         printf("Processing %d %s: ", i, keywords[program->Instructions[i].instructionType]);
-        preprocessInstruction(processed, macros, &currentMacro, program->Instructions[i]);
+        preprocessInstruction(processed, macros, program->Instructions[i]);
     }
     
+    printf("Processed output contains %d entries\n",processed->length);
 
     return 1;
 }

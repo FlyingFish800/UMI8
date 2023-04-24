@@ -13,6 +13,7 @@ typedef struct Macro {
 
 // MacroTable struct that contains all macros as a queue
 typedef struct MacroTable {
+    int memoryLength;
     int length;
     Macro *macros;
 } MacroTable;

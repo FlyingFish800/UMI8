@@ -13,27 +13,27 @@
 int main(int argc, char *argv[]) {
     printf("NOTE: Assembler only accepts assembly files with all caps instructions\n");
 
-    // Path to file to parse
+    // Get path of file to be parsed TODO: get from argv
     char *path = "../Asm_Src/test_macro.asm";
     if (argc > 1) path = argv[1];
 
-    // File pointer for file
-    FILE *fp = fopen(path, "r");
-
-    // Error checking
-    if (fp == NULL){
-        perror("File not found\n");
+    // Open the file
+    FILE *inFile;
+    if ((inFile = fopen(path, "r")) == NULL){
+        perror("Input file not found\n");
         return -1;
     }
 
+    // Lex and preprocess program to intstructions
     printf("\n----BEGINNING-LEXING----\n");
     Program program;
-    parseProgram(fp, &program);
+    parseProgram(inFile, &program);
     if (program.length <= 0) return 0;
 
     // Close file
-    fclose(fp);
+    fclose(inFile);
 
+    // Print parsed output
     printf("\n----PARSED-OUTPUT----\n");
     for (size_t i = 0; i < program.length; i++) {
         printf("%s ", keywords[program.Instructions[i].instructionType]);
@@ -43,13 +43,20 @@ int main(int argc, char *argv[]) {
         printf("\n");
     }
     
-    
+    // Open output file TODO: get from argv
+    FILE *outFile;
+    if ((outFile = fopen("./a.bin", "w")) == NULL){
+        perror("Output file not found\n");
+        return -1;
+    }
+
+    // Generate machinecode
     printf("\n----BEGINING_CODEGEN----\n");
-    generateCode(&program, NULL);
+    generateCode(&program, outFile);
+    fclose(outFile);
 
     // Free parsed instructions
     for (int i = 0; i < program.length; i++) free(program.Instructions[i].operands);
-
     free(program.Instructions);
     
     
