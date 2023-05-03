@@ -28,6 +28,26 @@ int registerMacroOperand(Macro *m, Operand o){
     return 1;
 }
 
+// Check that the current instruction fits a valid macro prototype
+int checkMacroValid(MacroTable valid_macros, Instruction instruction){
+    // Operand 0 is name
+    char *instructionName = instruction.operands[0].value;
+
+    // Check each macro
+    for (int i = 0; i < valid_macros.length; i++){
+        // Get name of macro being checked, continue if it isn't being invoked
+        char *currentMacroName = valid_macros.macros[i].identifier;
+        if (strcmp(currentMacroName, instructionName) != 0) continue;
+
+        // Check operand types. Labels fine as adresses
+        
+        return 1;
+    }
+
+    // Shouldn't happen, lexer should error if it doesn't exist
+    return 0;
+}
+
 // Handle a single instruction. Put results into processedProgram, provided valid macros, and the current macro if applicable
 // Returns >0 if no errors
 int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, Instruction instruction){
@@ -63,7 +83,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         printf("Exiting macro %s\n", currentMacro);
         currentMacro = NULL;
     } else if (instruction.instructionType == keyword_to_type("INVOKE_MACRO")) {
-        printf("TODO: Validate macro\n");
+        printf("Found? %s\n", (checkMacroValid(valid_macros, instruction)) ? "True" : "False");
     } else {
         // No preprocessor action necessary
         printf("No action\n");

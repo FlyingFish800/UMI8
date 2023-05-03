@@ -35,6 +35,7 @@ int toInt(char *string){
     }
 
     // return strtol
+    // TODO: error handling!!!
     return strtol(trimmedStr,NULL,base);
 }
 

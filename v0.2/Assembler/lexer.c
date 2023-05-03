@@ -79,9 +79,9 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
      */
 
     // Get next block. If returns true for EOF, no more to parse
-    if (getNextBlock(fp)) return 0;
+    if (getNextBlock(fp)) return PARSE_ERROR_NONE;
     char c = fgetc(fp);
-    if (c == '\n') return 1;
+    if (c == '\n') return PARSE_CONTINUE;
 
     // Read Identifier, read char by char
     // TODO: Memsafe?
@@ -90,13 +90,14 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
     do {
         len += 1;
         id = realloc(id,len*sizeof(char));
-        if (id == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
+        if (id == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return PARSE_ERROR_REALLOC;}
         id[len-1] = c;
         c = fgetc(fp);
     } while (!isWhiteSpace(c) && c != ';' && c != '\n' && c != EOF);
     ungetc(c, fp);
 
     // When building strings yourself, don't forget to null terminate them!
+    // TODO: err check
     id = realloc(id,(len+1)*sizeof(char));
     id[len] = '\0';
 
@@ -108,7 +109,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
     if (instruction.operands == NULL) {
         perror("FAILED INITIAL ALLOCATION OF OPERANDS"); 
         program->length = -1;
-        return 0;
+        return PARSE_ERROR_MALLOC;
     }
 
     // In case it is a macro
@@ -129,7 +130,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         if(!addOperand(&instruction, op)) {
             printf("FAILED TO ADD OPERAND FOR LABEL %s\n", id);
             program->length = -1;
-            return 0;
+            return PARSE_ERROR_INVALID_OPERAND;
         }
 
     } else if ((type = keyword_to_type(id)) >= 0) {
@@ -143,7 +144,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             if (new_macro.operands == NULL){
                 printf("UNABLE TO ALLOCATE MEMORY FOR MACRO %s OPERANDS.\n", id);
                 program->length = -1;
-                return 0;
+                return PARSE_ERROR_MALLOC;
             }
         }
 
@@ -158,7 +159,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             printf("%s IS NOT A VALID MACRO.\n", id);
             printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
             program->length = -1;
-            return 0;
+            return PARSE_ERROR_INVALID_INSTRUCTION;
         } else {
             printf("%s IS A VALID MACRO.\n", id);
             instruction.instructionType = keyword_to_type("INVOKE_MACRO");
@@ -193,7 +194,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         do {
             opLen+=1;
             opId = realloc(opId,opLen*sizeof(char));
-            if (opId == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return 0;}
+            if (opId == NULL) {printf("ERROR, UNABLE TO REALLOC IN ID PARSING"); return PARSE_ERROR_REALLOC;}
             opId[opLen-1] = c;
             c = fgetc(fp);
             if (c == '"') string = 0;
@@ -201,7 +202,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         ungetc(c, fp);
 
         // When building strings yourself, dont forget to null terminate them!
-        opId = realloc(opId,(opLen+1)*sizeof(char));
+        opId = realloc(opId,(opLen+1)*sizeof(char)); // TODO: ERR check
         opId[opLen] = '\0';
 
         // Initialize operand
@@ -237,7 +238,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             if (instruction.instructionType != keyword_to_type(".MACRO")){
                 printf("MACRO PROTOTYPE %s GIVEN IN NON MACRO DEFINITION (%s)\n", operand.value, opId);
                 program->length = -1;
-                return 0;
+                return PARSE_ERROR_INVALID_MACRO;
             }
 
             // Expected arguments given to macro in form <protype>
@@ -253,7 +254,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             if(!registerMacroOperand(&new_macro, operand)) {
                 printf("FAILED TO ADD OPERAND %s FOR MACRO %s\n", operand.value, id);
                 program->length = -1;
-                return 0;
+                return PARSE_ERROR_ADD_OEPRAND;
             } 
 
         } else if (instruction.instructionType == keyword_to_type(".MACRO") && instruction.operandsLength == 0){
@@ -265,7 +266,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         } else {
             printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
             program->length = -1;
-            return 0;
+            return PARSE_ERROR_INVALID_OPERAND;
         }
 
         printf(":%s ",operand.value);
@@ -274,7 +275,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         if(!addOperand(&instruction, operand)) {
             printf("FAILED TO ADD OPERAND %s FOR INSTRUCTION %s\n", operand.value, id);
             program->length = -1;
-            return 0;
+            return PARSE_ERROR_ADD_OEPRAND;
         } 
     }
 }
@@ -300,11 +301,10 @@ void parseProgram(FILE *fp, Program *program){
     // Get file pointer to first valid code block (or comment, which is handled in same code)
     skipWhiteSpace(fp);
 
-    // ParseInstruction for every line of file, handles comments and "\n". breaks look when EOF encoutnered
-    while (parseInstruction(fp, &unprocessed, &valid_macros)){
-        printf("\n");
-        /* code */
-    }
+    // ParseInstruction for every line of file, handles comments and '\n'. breaks look when EOF encoutnered
+    int error;
+    while (error = parseInstruction(fp, &unprocessed, &valid_macros)) printf("\n");
+    // TODO: Increment counter. Line with error is in counter
 
     // Print macros
     printf("\nMacros found: %d\n", valid_macros.length);
