@@ -14,7 +14,7 @@ enum parseErrors {
     PARSE_ERROR_INVALID_MACRO,
     PARSE_ERROR_INVALID_OPERAND,
     PARSE_ERROR_INVALID_INSTRUCTION
-}
+};
 
 // Macro to be expanded into body
 typedef struct Macro {

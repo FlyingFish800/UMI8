@@ -7,6 +7,7 @@
 
 _start:
     PPC _target
+    ;ABC ; Shouldnt work
 _loop:
     JP _loop
 
