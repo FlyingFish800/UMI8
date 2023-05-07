@@ -58,7 +58,8 @@ int getMacroOperandType(char *operand){
     }
 }
 
-// Use
+// Check all valid macros given to find index of specified macro
+// return index or -1 if invalid
 int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
     // Check each macro
     for (int i = 0; i < valid_macros.length; i++){
@@ -66,6 +67,7 @@ int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
         if (strcmp(currentMacroName, macroName) == 0) return i;
     }
 
+    // Macro not found
     return -1;
 
 }
@@ -112,8 +114,8 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
 
 }
 
-// Handle a single instruction. Put results into processedProgram, provided valid macros, and the current macro if applicable
-// Returns >0 if no errors
+// Handle a single instruction. Put results into processedProgram, provided valid macros, 
+// and the current macro if applicable. Returns >0 if no errors
 int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, Instruction instruction){
     /*  Handles individual instructions in a program:
      *  - Add as is if no processing necessary
@@ -121,32 +123,35 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
      *  - TODO: Define Constants if necessary
      *  - TODO: Evaluate expressions if necessary
      */
-    static char *currentMacro;
+    static int currentMacro = -1;
 
     if (instruction.instructionType == keyword_to_type(".MACRO")) {
         // Handle Macro definitions
         char *macroName = instruction.operands[0].value;    // First operand is name
 
         // Gaurd against nested macro definitions
-        if (currentMacro != NULL) {
-            printf("CANNOT DEFINE MACRO INSIDE MACRO. %s FOUND INSIDE %s\n", macroName, currentMacro);
+        if (currentMacro != -1) {
+            printf("CANNOT DEFINE MACRO INSIDE MACRO. %s ", macroName);
+            printf("FOUND INSIDE %s\n", valid_macros.macros[currentMacro].identifier);
             return -1;
         }
         
-        // Mark the current macro
-        currentMacro = instruction.operands[0].value;
-        printf("Current macro set to %s\n", currentMacro);
+        // Mark the current macro, exit if invalid
+        if (currentMacro = getMacroIndexFromName(valid_macros, macroName) == -1) return -1;
+        valid_macros.macros[currentMacro].body.Instructions = malloc(0);
+        valid_macros.macros[currentMacro].body.length = 0;
+        printf("Current macro set to %s\n", macroName);
 
     } else if (instruction.instructionType == keyword_to_type(".END")) {
         // Gaurd against extra .ENDs
-        if (currentMacro == NULL) {
+        if (currentMacro == -1) {
             printf("ORPHANED .END FOUND\n");
             return -1;
         }
 
         // Current macro has been fully processed
-        printf("Exiting macro %s\n", currentMacro);
-        currentMacro = NULL;
+        printf("Exiting macro %s\n", valid_macros.macros[currentMacro].identifier);
+        currentMacro = -1;
 
     } else if (instruction.instructionType == keyword_to_type("INVOKE_MACRO")) {
         int index;
@@ -160,18 +165,26 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         printf("Found!\n");
         Macro macro = valid_macros.macros[index];
 
+        // TODO: Inject all macro code
+        // for instruction in macro
+        //     processedProgram.pushInstruction(instruction)
+
     } else {
         // No preprocessor action necessary is not in macro
-        if (currentMacro == NULL){
+        if (currentMacro == -1){
             printf("No preprocessor action\n");
             return addInstruction(processedProgram, instruction, 1);
         } else { 
             // If in macro put instructions into it
-            
+            printf("YES preprocessor action\n");
+            Program *macroContents = &valid_macros.macros[currentMacro].body;
+            return addInstruction(macroContents, instruction, 1);
         }
 
     }
-    
+
+    // All good
+    return 1;
 }
 
 // Turn lexed token stream into a processed stream fit for generation
@@ -182,7 +195,7 @@ int preprocessProgram(Program *program, MacroTable macros, Program *processed){
     // Run every instruction in program through preprocessor and put result in processed
     for (int i = 0; i < program->length; i++) {
         printf("Processing %d %s: ", i, keywords[program->Instructions[i].instructionType]);
-        preprocessInstruction(processed, macros, program->Instructions[i]);
+        if (preprocessInstruction(processed, macros, program->Instructions[i]) <= 0) return 0;
     }
     
     printf("Processed output contains %d entries\n",processed->length);
