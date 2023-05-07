@@ -58,52 +58,58 @@ int getMacroOperandType(char *operand){
     }
 }
 
+// Use
+int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
+    // Check each macro
+    for (int i = 0; i < valid_macros.length; i++){
+        char *currentMacroName = valid_macros.macros[i].identifier;
+        if (strcmp(currentMacroName, macroName) == 0) return i;
+    }
+
+    return -1;
+
+}
+
 // Check that the current instruction fits a valid macro prototype
 int checkMacroValid(MacroTable valid_macros, Instruction instruction){
     // Operand 0 is name
     char *instructionName = instruction.operands[0].value;
 
-    // Check each macro
-    for (int i = 0; i < valid_macros.length; i++){
-        // First check to see if they have the same operand count
-        // -1 for instruction having identifier as #1
-        Macro testMacro = valid_macros.macros[i];
-        if (testMacro.operandsLength != instruction.operandsLength-1) return 0;
-        printf("Same len ");
+    // Find macro. Return error if not found
+    int macroIndex = getMacroIndexFromName(valid_macros, instructionName);
+    if (macroIndex == -1) return -1;
+    printf("Same id ");
 
-        // Get name of macro being checked, continue if it isn't being invoked
-        char *currentMacroName = testMacro.identifier;
-        if (strcmp(currentMacroName, instructionName) != 0) continue;
-        printf("Same id ");
+    // Get macro and check operands are same length
+    Macro testMacro = valid_macros.macros[macroIndex];
+    if (testMacro.operandsLength != instruction.operandsLength-1) return -1;
+    printf("Same len ");
 
-        // Check operand types. Labels fine as adresses and vice versa
-        for (int o = 1; o < instruction.operandsLength; o++){
-            // Temp variables so these if statements aren't too horendous...
-            Operand macroOp = testMacro.operands[o - 1]; // -1 to account for skipped identifier
-            Operand insOp = instruction.operands[o];
+    // Check operand types. Labels fine as adresses and vice versa
+    for (int o = 1; o < instruction.operandsLength; o++){
+        // Temp variables so these if statements aren't too horendous...
+        Operand macroOp = testMacro.operands[o - 1]; // -1 to account for skipped identifier
+        Operand insOp = instruction.operands[o];
 
-            // Parse the operand type of the macro arg
-            char macroOpMode = getMacroOperandType(macroOp.value);
-            if (macroOpMode <= 0) return 0;
+        // Parse the operand type of the macro arg
+        char macroOpMode = getMacroOperandType(macroOp.value);
+        if (macroOpMode <= 0) return -1;
 
-            // TODO: how to parse macro args??? Look at my old code
-            printf(" %d vs %d ", macroOpMode, insOp.accesingMode);
+        // TODO: how to parse macro args??? Look at my old code
+        printf(" %d vs %d ", macroOpMode, insOp.accesingMode);
 
-            // Check if modes are the same or equivalent
-            if (macroOpMode == insOp.accesingMode) continue;
-            else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
-            else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
-            else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
-            else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
-            else return 0; // Invalid
-        }
-
-        // Valid!
-        return 1;
+        // Check if modes are the same or equivalent
+        if (macroOpMode == insOp.accesingMode) continue;
+        else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
+        else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
+        else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
+        else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
+        else return -1; // Invalid
     }
 
-    // Shouldn't happen, lexer should error if it doesn't exist
-    return 0;
+    // Valid! Return index
+    return macroIndex;
+
 }
 
 // Handle a single instruction. Put results into processedProgram, provided valid macros, and the current macro if applicable
@@ -119,7 +125,6 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
 
     if (instruction.instructionType == keyword_to_type(".MACRO")) {
         // Handle Macro definitions
-
         char *macroName = instruction.operands[0].value;    // First operand is name
 
         // Gaurd against nested macro definitions
@@ -127,8 +132,9 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             printf("CANNOT DEFINE MACRO INSIDE MACRO. %s FOUND INSIDE %s\n", macroName, currentMacro);
             return -1;
         }
+        
+        // Mark the current macro
         currentMacro = instruction.operands[0].value;
-
         printf("Current macro set to %s\n", currentMacro);
 
     } else if (instruction.instructionType == keyword_to_type(".END")) {
@@ -138,19 +144,32 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             return -1;
         }
 
+        // Current macro has been fully processed
         printf("Exiting macro %s\n", currentMacro);
         currentMacro = NULL;
+
     } else if (instruction.instructionType == keyword_to_type("INVOKE_MACRO")) {
+        int index;
+
         // Gaurd statement to validate macro prototype
-        if(!checkMacroValid(valid_macros, instruction)) {
+        if((index = checkMacroValid(valid_macros, instruction)) == -1) {
             printf("NOT FOUND\n");
             return -1;
         }
+
         printf("Found!\n");
+        Macro macro = valid_macros.macros[index];
+
     } else {
-        // No preprocessor action necessary
-        printf("No preprocessor action\n");
-        return addInstruction(processedProgram, instruction, 1);
+        // No preprocessor action necessary is not in macro
+        if (currentMacro == NULL){
+            printf("No preprocessor action\n");
+            return addInstruction(processedProgram, instruction, 1);
+        } else { 
+            // If in macro put instructions into it
+            
+        }
+
     }
     
 }
