@@ -162,12 +162,20 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             return -1;
         }
 
+        // Found macro
         printf("Found!\n");
         Macro macro = valid_macros.macros[index];
 
-        // TODO: Inject all macro code
-        // for instruction in macro
-        //     processedProgram.pushInstruction(instruction)
+        // Inject all macro instructions
+        printf("INJECTING: ");
+        int error = 0;
+        for (int i = 0; i < macro.body.length; i++){
+            // Todo: fulfill macro operands from prototype
+            printf(" %s ",keywords[macro.body.Instructions[i].instructionType]);
+            error = addInstruction(processedProgram, macro.body.Instructions[i], 1);
+            if (error != 1) return -1;
+        }
+        printf("\n");
 
     } else {
         // No preprocessor action necessary is not in macro
