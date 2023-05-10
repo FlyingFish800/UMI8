@@ -166,11 +166,26 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         printf("Found!\n");
         Macro macro = valid_macros.macros[index];
 
+        // Create an ordered list of all macro operands:
+        // Eg. for PPC _start -> ['_start']
+        // Eg. for jmpoff _target, offset -> ['_target', 'offset']
+
         // Inject all macro instructions
         printf("INJECTING: ");
         int error = 0;
         for (int i = 0; i < macro.body.length; i++){
             // Todo: fulfill macro operands from prototype
+
+            // Write function to get index of needed operands from  
+            // macro definition
+            // Eg. in PPC _lbl, call _lbl would look up address of 
+            // _lbl in the prototype (PPC _lbl), return 0
+
+            // Use index of argument in macro prototype to look up
+            // argumment in the list of macro oeprands
+            // Eg. for PPC _start, Call _lbl would look up index 0
+            // from the list of macro operands and get _start
+
             printf(" %s ",keywords[macro.body.Instructions[i].instructionType]);
             error = addInstruction(processedProgram, macro.body.Instructions[i], 1);
             if (error != 1) return -1;
