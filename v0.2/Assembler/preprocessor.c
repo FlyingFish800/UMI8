@@ -114,6 +114,23 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
 
 }
 
+Instruction createModifiedInstruction(MacroTable valid_macros, Instruction instruction){
+    // Create new instruction fulfilling macro
+    Instruction newInstruction;
+
+    // for each operand, skip name at first index
+    for (int i = 1; i < instruction.operandsLength; i++){
+        // Only really need to do for labels and number -> label
+
+        // Check if operand name from macro defintion
+        // If not, continue
+        // lookup index in macro potoype
+        // fulfill using supplied argument at that index
+    }
+
+    return newInstruction;
+}
+
 // Handle a single instruction. Put results into processedProgram, provided valid macros, 
 // and the current macro if applicable. Returns >0 if no errors
 int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, Instruction instruction){
@@ -174,7 +191,13 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         printf("INJECTING: ");
         int error = 0;
         for (int i = 0; i < macro.body.length; i++){
+            Instruction currentInstruction = macro.body.Instructions[i];
+
             // Todo: fulfill macro operands from prototype
+            // TODO: what if operand arg, and global? I don't think
+            // it would cause problems but should it be allowed?
+
+            // Create new instruction in function
 
             // Write function to get index of needed operands from  
             // macro definition
@@ -186,8 +209,8 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             // Eg. for PPC _start, Call _lbl would look up index 0
             // from the list of macro operands and get _start
 
-            printf(" %s ",keywords[macro.body.Instructions[i].instructionType]);
-            error = addInstruction(processedProgram, macro.body.Instructions[i], 1);
+            printf(" %s ",keywords[currentInstruction.instructionType]);
+            error = addInstruction(processedProgram, currentInstruction, 1);
             if (error != 1) return -1;
         }
         printf("\n");
