@@ -118,6 +118,8 @@ Instruction createModifiedInstruction(MacroTable valid_macros, Instruction instr
     // Create new instruction fulfilling macro
     Instruction newInstruction;
 
+    // Get array for macro defined operands
+
     // for each operand, skip name at first index
     for (int i = 1; i < instruction.operandsLength; i++){
         // Only really need to do for labels and number -> label
