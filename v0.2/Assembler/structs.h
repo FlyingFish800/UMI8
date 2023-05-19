@@ -2,8 +2,8 @@
  *  Contains the Instruction and Operand structs to facilitate parsing
  */
 
-#ifndef STRUCTS
-#define STRUCTS
+#ifndef STRUCTS_H
+#define STRUCTS_H
 
 #include <string.h>
 

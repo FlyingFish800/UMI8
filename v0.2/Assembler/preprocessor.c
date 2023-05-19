@@ -100,12 +100,12 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
         // TODO: how to parse macro args??? Look at my old code
         printf(" %d vs %d ", macroOpMode, insOp.accesingMode);
 
-        // Check if modes are the same or equivalent
+        // Check if modes are the same or equivalent NOTE: Don't need euqivalent
         if (macroOpMode == insOp.accesingMode) continue;
-        else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
-        else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
-        else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
-        else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
+        //else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
+        //else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
+        //else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
+        //else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
         else return -1; // Invalid
     }
 
@@ -114,20 +114,56 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
 
 }
 
-Instruction createModifiedInstruction(MacroTable valid_macros, Instruction instruction){
+// Checks if an operand's name is from the definition of a macro
+// Returns the index of name if found, otherwise -1;
+int inMacroDef(Macro m, char *name){
+    for (int i = 0; i < m.operandsLength; i++){
+        printf(" %d:[%s]",i,m.operands[i].value);
+        if (strcmp(name, m.operands[i].value) == 0) return i;
+    }
+    return -1;
+}
+
+// Given an instruction and a macro it is from, convert that instruction for this macro call.
+// Ex:
+// .macro CALL <_lbl>
+//      PPC
+//      JP _lbl
+// .end
+// CALL _subroutine
+// JP _lbl would get translated to JP _lbl, and PPC would be untouched
+// Caller should error if returned instructionType is -1
+Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction, Instruction macroCall){
     // Create new instruction fulfilling macro
     Instruction newInstruction;
+    newInstruction.operands = malloc(sizeof(Operand) * protoInstruction.operandsLength);
+    newInstruction.operandsLength = protoInstruction.operandsLength;
 
-    // Get array for macro defined operands
+    // Make sure macros are not recursively called. 
+    if ((protoInstruction.operandsLength > 0) && (protoInstruction.operands[0].accesingMode == MACRO_ID)){
+        newInstruction.instructionType = -1;
+        return newInstruction;
+    }
+    newInstruction.instructionType = protoInstruction.instructionType;
 
-    // for each operand, skip name at first index
-    for (int i = 1; i < instruction.operandsLength; i++){
-        // Only really need to do for labels and number -> label
+    // For each operand
+    for (int i = 0; i < protoInstruction.operandsLength; i++){
+        // Index into operand template in macro definition
+        int protoIndex;
 
-        // Check if operand name from macro defintion
-        // If not, continue
-        // lookup index in macro potoype
-        // fulfill using supplied argument at that index
+        // Lookup index in macro potoype, continue if not in prototype
+        if ((protoIndex = inMacroDef(macro, protoInstruction.operands[i].value)) == -1) {
+            newInstruction.operands[i] = newInstruction.operands[i];
+            continue;
+        }
+
+        // If from prototype, fulfill using type for the protoype, and get value
+        // from the macro call (using index from prototype)
+        newInstruction.operands[i].accesingMode = protoInstruction.operands[i].accesingMode;
+        newInstruction.operands[i].value = macroCall.operands[i + 1].value; 
+        // +1 because in macro definition the name is the first operand, but in prototype that isnt 
+
+        printf("%d:[%s]", protoIndex, newInstruction.operands[i].value);
     }
 
     return newInstruction;
@@ -156,7 +192,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         }
         
         // Mark the current macro, exit if invalid
-        if (currentMacro = getMacroIndexFromName(valid_macros, macroName) == -1) return -1;
+        if ((currentMacro = getMacroIndexFromName(valid_macros, macroName))== -1) return -1;
         valid_macros.macros[currentMacro].body.Instructions = malloc(0);
         valid_macros.macros[currentMacro].body.length = 0;
         printf("Current macro set to %s\n", macroName);
@@ -194,6 +230,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         int error = 0;
         for (int i = 0; i < macro.body.length; i++){
             Instruction currentInstruction = macro.body.Instructions[i];
+            Instruction modifiedInstruction;
 
             // Todo: fulfill macro operands from prototype
             // TODO: what if operand arg, and global? I don't think
@@ -211,8 +248,10 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             // Eg. for PPC _start, Call _lbl would look up index 0
             // from the list of macro operands and get _start
 
-            printf(" %s ",keywords[currentInstruction.instructionType]);
-            error = addInstruction(processedProgram, currentInstruction, 1);
+            modifiedInstruction = createModifiedInstruction(macro, currentInstruction, instruction);
+
+            printf(" %s ",keywords[modifiedInstruction.instructionType]);
+            error = addInstruction(processedProgram, modifiedInstruction, 1);
             if (error != 1) return -1;
         }
         printf("\n");

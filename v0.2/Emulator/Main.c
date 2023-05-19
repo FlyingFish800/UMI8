@@ -5,7 +5,8 @@
 #include "IODevices/terminal.h"
 #include "IODevices/ansiicommands.h"
 
-#define THREADED
+//#define THREADED
+#define DEBUG
 
 #ifdef THREADED
 #warning "Multithreading on"

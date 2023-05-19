@@ -3,9 +3,11 @@
 
 .MACRO PPC <_lbl>
     CALL _lbl
+    NOP
 .END
 
 _start:
+    NOP
     PPC _target
     ;ABC ; Shouldnt work
 _loop:

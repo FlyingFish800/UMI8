@@ -1,5 +1,6 @@
-#ifndef UMI8
-#define UMI8
+#ifndef CPU_H
+#define CPU_H
+
 #include <stdio.h>
 #include <string.h>
 #include <memory.h>
