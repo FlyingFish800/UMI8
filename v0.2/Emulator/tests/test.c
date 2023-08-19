@@ -6,14 +6,14 @@
 
 void exec_instruction(CPU *core){
     do {
-        clock(core);
+        clock_core(core);
     } while (core->UStep != 0);
 }
 
 void debug_instruction(CPU *core){
     do {
         getchar();
-        clock(core);
+        clock_core(core);
         coreDump(core);
     } while (core->UStep != 0);
 }
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     CPU core;
     reset(&core);
     loadUCode(&core, "microcode.bin");
-    core.RAM[RAM_SIZE-1] = 0xFF; // SP = FF
+    core.RAM[RAM_SIZE-1] = 0xFE; // SP = FF
 
     core.RAM[0] = 0x08; // LDA I
     core.RAM[1] = 0x42; // x42
