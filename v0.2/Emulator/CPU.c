@@ -5,6 +5,9 @@
 #warning "Debug on"
 #endif
 
+// Check if flag is present in flags
+#define flagged(flags, flag) ((flags & flag) == flag)
+
 // LUT for instruction names
 const char *INSTRUCTION[] = {"NOP",       "CALL I",   "RET",      "PSH R",    "POP R",    "",     "",     "", 
                             "LD R I",    "LD R MA",  "LD MA R",  "LD R MR",  "LD MR R",  "",     "",     "",
@@ -53,6 +56,8 @@ void clock_core(CPU* cpu){
     cpu->REG_ACTIVE = ((cpu->IR & RSEL) == RSEL) ? &cpu->C : &cpu->A;
     byte reg_val = *cpu->REG_ACTIVE;
 
+    byte inc_pc = 0;
+
     // Output to bus
     // Switch on SRC bits for ctrl word. Push appropriate value to bus
     byte flags = 0;
@@ -69,24 +74,32 @@ void clock_core(CPU* cpu){
             cpu->BUS = cpu->PCHI;
             break;
 
-        case EOS:
-            // TODO: Fix flags
-            // Add 1 if inc, also determine carry
-            if((CTRLWord & ALU) == INC) {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF) + 1) & 0xFFFF;if((reg_val+(~cpu->B & 0xFFFF)+1)>255) flags|=CARRY;}
-            else {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF)) & 0xFFFF;if(reg_val+(~cpu->B & 0xFFFF)>255) flags|=CARRY;}
-            if(cpu->BUS == 0) flags |= ZERO;   // Zero
-            if((cpu->BUS&0b10000000)>>7 == 1) flags |= NEGATIVE;   // Negative
-            cpu->Flags = flags;
-            break;
+        case EOP: // Do EO but increment PC
+            inc_pc = 1;
 
         case EO:
             // Add 1 if inc, also determine carry
-            if((CTRLWord & ALU) == INC) {cpu->BUS = reg_val + cpu->B + 1;if((reg_val+cpu->B+1)>255)flags|=CARRY;}
-            else {cpu->BUS = reg_val + cpu->B;if((reg_val+cpu->B)>255)flags|=CARRY;}
-            if(cpu->BUS == 0) flags |= ZERO;   // Zero
-            if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
-            cpu->Flags = flags;
-            break;
+            if ((cpu->IR & 0b1) == 0) { // Not is dependent on first bit
+                // EO
+                if((CTRLWord & ALU) == INC) {cpu->BUS = reg_val + cpu->B + 1;if((reg_val+cpu->B+1)>255)flags|=CARRY;}
+                else {cpu->BUS = reg_val + cpu->B;if((reg_val+cpu->B)>255)flags|=CARRY;}
+                if(cpu->BUS == 0) flags |= ZERO;   // Zero
+                if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
+                cpu->Flags = flags;
+                break;
+
+            } else {
+                // EOS
+                // TODO: Fix flags
+                // Add 1 if inc, also determine carry
+                if((CTRLWord & ALU) == INC) {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF) + 1) & 0xFFFF;if((reg_val+(~cpu->B & 0xFFFF)+1)>255) flags|=CARRY;}
+                else {cpu->BUS = (reg_val + (~cpu->B & 0xFFFF)) & 0xFFFF;if(reg_val+(~cpu->B & 0xFFFF)>255) flags|=CARRY;}
+                if(cpu->BUS == 0) flags |= ZERO;   // Zero
+                if((cpu->BUS&0b10000000)>>7 == 1) flags |= NEGATIVE;   // Negative
+                cpu->Flags = flags;
+                break;
+
+            }
 
         case AO:
             cpu->BUS = *cpu->REG_ACTIVE;
@@ -191,6 +204,16 @@ void clock_core(CPU* cpu){
             break;
     } // end switch
 
+    // Handle EOP
+    if (inc_pc){
+        if (cpu->PCLO < 255) { // Increment least significant
+            cpu->PCLO++;
+        } else { // Ripple carry
+            cpu->PCHI++; // Wraps around to 0 from 255
+            cpu->PCLO = 0;
+        } // end if
+
+    }
 
     // Handle CE and Reset A as part of ALU operation
     if ((CTRLWord & ALU) == CE) {
@@ -211,7 +234,7 @@ void clock_core(CPU* cpu){
     } // end if    
 
     // Handle microstep
-    if (cpu->UStep >= 31) {
+    if (cpu->UStep >= 15) {
         cpu->UStep = 0;
     } else {
         cpu->UStep++;    
@@ -259,8 +282,8 @@ void dbgCtrlLine(byte CTRLWord){
             printf("BO ");
             break;
 
-        case EOS:
-            printf("EOS ");
+        case EOP:
+            printf("EOP ");
             break;
 
         case POL:
@@ -351,3 +374,23 @@ void dbgCtrlLine(byte CTRLWord){
     }
     printf("\n");
 } // end dbgCtrlLines
+
+
+// Copy the state of the src core into the dst core
+void copy_core(CPU* src, CPU* dst){
+    memcpy(dst, src, sizeof(CPU));
+}
+
+// Dumps CPU core state to stdio
+char check_cores(CPU* core1, CPU* core2, char flags){
+    char errs = 0;
+    if ((core1->A != core2->A) && flagged(flags, CHECK_A)) errs |= CHECK_A;
+    if ((core1->B != core2->B) && flagged(flags, CHECK_B)) errs |= CHECK_B;
+    if ((core1->C != core2->C) && flagged(flags, CHECK_C)) errs |= CHECK_C;
+    if ((core1->Flags != core2->Flags) && flagged(flags, CHECK_FLAGS)) errs |= CHECK_FLAGS;
+    if ((core1->IR != core2->IR) && flagged(flags, CHECK_IR)) errs |= CHECK_IR;
+    if ((core1->PCHI != core2->PCHI) && (core1->PCLO != core2->PCLO) && flagged(flags, CHECK_PC)) errs |= CHECK_PC;
+    if ((core1->MARHI != core2->MARHI) && (core1->MARLO != core2->MARLO) && flagged(flags, CHECK_MAR)) errs |= CHECK_MAR;
+
+    return errs;
+}

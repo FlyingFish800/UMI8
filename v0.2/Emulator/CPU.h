@@ -36,7 +36,7 @@
 
 // SRC ctrl lines
 #define NO  0b00000000
-#define EOS 0b00000100
+#define EOP 0b00000100
 #define POL 0b00001000
 #define POH 0b00001100
 #define AO  0b00010000
@@ -61,6 +61,17 @@
 
 // Location of 'UART' out
 #define SERIAL_OUT  0xFEFF
+
+// Core equality check flags
+#define CHECK_PC    0b00000001
+#define CHECK_B     0b00000010
+#define CHECK_MAR   0b00000100
+#define CHECK_IR    0b00010000
+#define CHECK_FLAGS 0b00100000
+#define CHECK_A     0b01000000
+#define CHECK_C     0b10000000
+#define CHECK_All   0b11111111
+#define CHECK_EQL   CHECK_A && CHECK_C && CHECK_B && CHECK_FLAGS
 
 // 8 bit number
 typedef unsigned char byte;
@@ -138,5 +149,11 @@ void registerDevice(CPU* cpu, IODevice* device);
 
 // Print decoded ctrl lines. Used internally.
 void dbgCtrlLine(byte);
+
+// Dumps CPU core state to stdio
+void copy_core(CPU* src, CPU* dst);
+
+// Dumps CPU core state to stdio
+char check_cores(CPU* core1, CPU* core2, char flags);
 
 #endif

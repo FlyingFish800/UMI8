@@ -18,7 +18,7 @@ public class MicrocodeGenerator {
     public static final int WR  = 0b11100000;  // Memory Write
 
     public static final int NO  = 0b00000000;  // Mem out low
-    public static final int EOS = 0b00000100;  // Sum out with negated B
+    public static final int EOP = 0b00000100;  // Sum out PC enable only
     public static final int POL = 0b00001000;  // Program Counter out Low
     public static final int POH = 0b00001100;  // Program Counter out High
     public static final int AO  = 0b00010000;  // A out
@@ -27,7 +27,7 @@ public class MicrocodeGenerator {
     public static final int BO  = 0b00011100;  // B out
 
     public static final int ADD = 0b00000000;  // ADD (default state, ALU permanently in ADD mode)
-    public static final int CE  = 0b00000001;  // Program Counter Count enable
+    public static final int CE  = 0b00000001;  // Program Counter and MAR Count enable 
     public static final int INC = 0b00000010;  // ADD + Carry In
     public static final int CR  = 0b00000011;  // Microstep Counter Reset
 
@@ -124,8 +124,20 @@ public class MicrocodeGenerator {
                                     binaryWord |= BO;
                                     break;
 
-                                case "EOS":
-                                    binaryWord |= EOS;
+                                case "EOP": // EOP only on even instructions
+                                    if (index % 2 == 1) {
+                                        System.out.println("ERROR: used EOP on even instruction. Index: " + index);
+                                        System.exit(0);
+                                    }
+                                    binaryWord |= EOP;
+                                    break;
+
+                                case "EOSP": // EOSP only on odd instructions
+                                    if (index % 2 == 0) {
+                                        System.out.println("ERROR: used EOSP on odd instruction. Index: " + index);
+                                        System.exit(0);
+                                    }
+                                    binaryWord |= EOP;
                                     break;
                                     
                                 case "POL":
@@ -140,7 +152,19 @@ public class MicrocodeGenerator {
                                     binaryWord |= AO;
                                     break;
                                     
-                                case "EO":
+                                case "EO": // EO only on even instructions
+                                    if (index % 2 == 1) {
+                                        System.out.println("ERROR: used EO on even instruction. Index: " + index);
+                                        System.exit(0);
+                                    }
+                                    binaryWord |= EO;
+                                    break;
+                                    
+                                case "EOS": // EOS only on odd instrucitons
+                                    if (index % 2 == 0) {
+                                        System.out.println("ERROR: used EOS on odd instruction. Index: " + index);
+                                        System.exit(0);
+                                    }
                                     binaryWord |= EO;
                                     break;
 
