@@ -31,8 +31,8 @@ void reset(CPU* cpu){
 // Emulate one clock cycle of the cpu
 void clock_core(CPU* cpu){
     // Figure out ctrl byte (Instruction register is &|!OOOOO where first 3 are loadA modifiers, rest are opcode)
-    // Ucode indexing is formatted IIIIIFFFSSSSS where S = UStep, I = instruction, F = flags (ZNC)
-    unsigned short MCIndex = ((cpu->IR & 0b11111) << 8) | ((cpu->Flags & 0b111) << 5) | (cpu->UStep & 0b11111);
+    // Ucode indexing is formatted IIIIIFFF0SSSS where S = UStep, I = instruction, F = flags (ZNC)
+    unsigned short MCIndex = ((cpu->IR & 0b11111) << 8) | ((cpu->Flags & 0b111) << 5) | (cpu->UStep & 0b01111);
     byte CTRLWord = cpu->Microcode[MCIndex];
 
     // Print ctrl info for debugging

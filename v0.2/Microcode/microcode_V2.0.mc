@@ -1,3 +1,4 @@
+; NOTE: This microcode uses 32 microsteps
 ; Comment   AI is used instead of RI for legacy
 o0***, POL MIL, POH MIH, RD II CE, CR  ; NOP
 o01***, POL MIL, POH MIH, RD II CE, NO BI INC, BO MIH, BO MIL, RD AI, AO MIL, POL WR, EO AI, AO MIL, POH WR, EO AI, BO MIL, AO WR, POL MIL, POH MIH, RD BI CE, RD PIH, BO PIL, CR  ; CALL I

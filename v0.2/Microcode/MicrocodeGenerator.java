@@ -32,7 +32,7 @@ public class MicrocodeGenerator {
     public static final int CR  = 0b00000011;  // Microstep Counter Reset
 
     // How many microsteps
-    public static final int MICROSTEPS = 32;
+    public static final int MICROSTEPS = 16;
 
     // Hold code
     public Byte[] microcode = new Byte[8192];
@@ -43,7 +43,7 @@ public class MicrocodeGenerator {
     } // end main
 
     public MicrocodeGenerator(){
-        sourceFile = readFile("microcode.mc");
+        sourceFile = readFile("microcode_V2.1.mc");
         generateBinary();
         outputBinary("microcode.bin");
     } // end class
