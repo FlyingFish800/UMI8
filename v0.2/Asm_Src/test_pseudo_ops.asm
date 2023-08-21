@@ -18,5 +18,5 @@ _end:
     JP _end
 
 _targ:
-    LD A, #0x42
+    LD C, #0x42
     RET

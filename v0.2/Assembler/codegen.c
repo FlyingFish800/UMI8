@@ -304,12 +304,10 @@ int generateCode(Program *program, FILE *outFile){
                 if (size == -1) return -1;
                 address += size;
 
-        } else if (strcmp(keywords[type], "CALL") == 0){
-                // Load can have variable length based on which variant is used. All should have 1 operand though
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR CALL\n", ins->operandsLength); return -1;}
-                size = handleJP(*ins, &deferredGen, machineCode, address, OP_CALLI, type);
-                if (size == -1) return -1;
-                address += size;
+        } else if (strcmp(keywords[type], "PPC") == 0){
+                // Push program couter to stack
+                machineCode[address] = OP_PPC;
+                address += 1;
 
         } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
@@ -321,15 +319,15 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address] = OP_RET;
                 address += 1;
 
-        } else if (strcmp(keywords[type], "PUSH") == 0){
+        } else if (strcmp(keywords[type], "PUT") == 0){
                 // All these instructions are one byte with no args
-                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR PUSH\n", ins->operandsLength); return -1;}
+                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR PUT\n", ins->operandsLength); return -1;}
                 
                 char reg = *ins->operands[0].value;
-                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PUSH reg: %c\n", reg); return -1;}
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PUT reg: %c\n", reg); return -1;}
                 unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
 
-                machineCode[address] = OP_PUSHR + to_C;
+                machineCode[address] = OP_PUTR + to_C;
                 address += 1;
 
         } else if (strcmp(keywords[type], "POP") == 0){
@@ -341,6 +339,17 @@ int generateCode(Program *program, FILE *outFile){
                 unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
 
                 machineCode[address] = OP_POPR + to_C;
+                address += 1;
+
+        } else if (strcmp(keywords[type], "PEEK") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR PEEK\n", ins->operandsLength); return -1;}
+                
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PEEK reg: %c\n", reg); return -1;}
+                unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
+
+                machineCode[address] = OP_PEEKR + to_C;
                 address += 1;
 
         } else if (strcmp(keywords[type], "ADD") == 0){

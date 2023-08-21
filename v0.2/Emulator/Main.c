@@ -61,6 +61,11 @@ int main(int argc, char *argv[]){
     loadRam(&core, "../Assembler/a.bin");
     core.RAM[0xFFFF] = 0xFE;
 
+    for (int i = 0; i < 16; i++) {
+        printf("0x%02d: 0x02%x\n", i, core.RAM[i]);
+    }
+    
+
     /*core.RAM[0] = 0x08; // LD A, 0x42
     core.RAM[1] = 0x42;
     core.RAM[2] = 0x3; // PUSH A

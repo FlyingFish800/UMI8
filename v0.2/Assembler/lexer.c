@@ -152,6 +152,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
     } else {
         char isValidMacro = 0;
         for (int i = 0; i < valid_macros->length; i++){
+            printf("Try: [%s] ", valid_macros->macros[i].identifier);
             if (strcmp(id, valid_macros->macros[i].identifier) == 0) isValidMacro = 1;
         }
         
@@ -209,11 +210,13 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         operand.value = opId;
         operand.accesingMode = 0;
 
+        printf("opval: %s ", operand.value);
+
         // Set accessing mode
         if(operand.value[0] == '_') {
             printf("ABS_LABEL");
             operand.accesingMode = ABSOLUTE_LABEL;
-        } else if(operand.value[0] == 'A' || opId[0] == 'C') {
+        } else if((operand.value[0] == 'A' || opId[0] == 'C') && (operand.value[1] == '\0')) {
             printf("REG");
             operand.accesingMode = REGISTER;
         } else if(operand.value[0] == '#') {
@@ -259,7 +262,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 
         } else if (instruction.instructionType == keyword_to_type(".MACRO") && instruction.operandsLength == 0){
             // First operand of a macro is the identifier
-            printf("MACRO ID");
+            printf("MACRO ID [%s] ", operand.value);
             
             new_macro.identifier = operand.value;
             operand.accesingMode = MACRO_ID;
