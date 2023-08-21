@@ -4,7 +4,10 @@
 #define RED "\x1B[31m"
 #define GREEN "\x1B[32m"
 
+#define i_at(core, hi, lo) core.RAM[(hi << 8) + lo]
+
 void exec_instruction(CPU *core){
+    //printf("EXEC: %s, #:0x%x\n", INSTRUCTION_NAMES[core->RAM[(core->PCHI << 8) + core->PCLO]], core->RAM[(core->PCHI << 8) + core->PCLO]);
     do {
         clock_core(core);
     } while (core->UStep != 0);
@@ -40,6 +43,13 @@ int main(int argc, char *argv[]){
     
     core.RAM[0x1234] = 0x3; // RET
 
+    core.RAM[9] = 0x08; // LDA I
+    core.RAM[10] = 0x42; // x42
+
+    core.RAM[11] = 0x04; // PUT R 
+
+    core.RAM[12] = 0x01; // PEEK R 
+
     printf("%sTesting LD A, I: ", RESET);
     exec_instruction(&core);
     if (core.A != 0x42) printf("%s FAILED. GOT 0x%x\n", RED, core.A);
@@ -60,7 +70,8 @@ int main(int argc, char *argv[]){
 
     printf("%sTesting PPC: ", RESET);
     exec_instruction(&core);
-    if (!((core.RAM[0xFFFE] == 6) && (core.RAM[0xFFFD] == 0))) printf("%s FAILED. GOT 0x%02x%02x\n", RED, core.RAM[0xFFFE], core.RAM[0xFFFD]);
+    if (!((core.RAM[0xFFFE] == 6) && (core.RAM[0xFFFD] == 0) && (core.PCLO == 6) && (core.PCHI == 0))) 
+        printf("%s FAILED. GOT 0x%02x%02x and address: 0x%02x%02x\n", RED, core.RAM[0xFFFE], core.RAM[0xFFFD], core.PCHI, core.PCLO);
     else printf("%s SUCCESS\n", GREEN);
 
     printf("%sTesting JP I: ", RESET);
@@ -74,6 +85,20 @@ int main(int argc, char *argv[]){
     exec_instruction(&core);
     if (!((core.PCHI == 0) && (core.PCLO == 9))) printf("%s FAILED. GOT 0x%02x%02x\n", RED, core.PCHI, core.PCLO);
     else printf("%s SUCCESS\n", GREEN);
+
+    // Stack ops destroy A, reload 0x42
+    exec_instruction(&core);
+
+    printf("%sTesting PUT A: ", RESET);
+    exec_instruction(&core);
+    if (!(core.RAM[0xFFFE] == 0x42)) printf("%s FAILED. GOT 0x%02x\n", RED, core.RAM[0xFFFE]);
+    else printf("%s SUCCESS\n", GREEN);
+
+    printf("%sTesting PEEK A: ", RESET);
+    exec_instruction(&core);
+    if (!(core.A == 0x42)) printf("%s FAILED. GOT 0x%02x\n", RED, core.A);
+    else printf("%s SUCCESS\n", GREEN);
+
 
 
 

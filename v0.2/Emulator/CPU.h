@@ -73,6 +73,12 @@
 #define CHECK_All   0b11111111
 #define CHECK_EQL   CHECK_A && CHECK_C && CHECK_B && CHECK_FLAGS
 
+// LUT for instruction names
+const static char *INSTRUCTION_NAMES[] = {"NOP",       "PEEK R",   "PPC",      "RET",    "PUT R",    "POP R",     "",     "", 
+                            "LD R I",    "LD R MA",  "LD MA R",  "LD R MR",  "LD MR R",  "",     "",     "",
+                            "JP I",      "JPZ I",    "JNZ I",    "JPC I",    "PNC I",    "JPN I","JNN I","",
+                            "ADD I",     "SUB I",   "ADDC I",    "CMP I",    "INC R",    "ZRO R","",     "LOGIC I"};
+
 // 8 bit number
 typedef unsigned char byte;
 

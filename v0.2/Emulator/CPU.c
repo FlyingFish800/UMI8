@@ -8,12 +8,6 @@
 // Check if flag is present in flags
 #define flagged(flags, flag) ((flags & flag) == flag)
 
-// LUT for instruction names
-const char *INSTRUCTION[] = {"NOP",       "CALL I",   "RET",      "PSH R",    "POP R",    "",     "",     "", 
-                            "LD R I",    "LD R MA",  "LD MA R",  "LD R MR",  "LD MR R",  "",     "",     "",
-                            "JP I",      "JPZ I",    "JNZ I",    "JPC I",    "PNC I",    "JPN I","JNN I","",
-                            "ADD I",     "ADDC I",   "INC R",    "ZRO R",    "SUB I",    "CMP I","",     "LOGIC I"};
-
 // Reset all internal registers and state of CPU.
 // DOESN'T RESET MICROCODE
 void reset(CPU* cpu){
@@ -260,7 +254,7 @@ void loadUCode(CPU* cpu, char* path){
 // Print status of cpu internal registers
 void coreDump(CPU* cpu){
     byte active_reg = ((cpu->IR & RSEL) == RSEL) ? 'C' : 'A';
-    printf("CURRENT INSTRUCTION: %s\n", INSTRUCTION[cpu->IR & 0b11111]);
+    printf("CURRENT INSTRUCTION: %s\n", INSTRUCTION_NAMES[cpu->IR & 0b11111]);
     printf("IR: 0x%x  Flags: %d  Step: %d\n", cpu->IR, cpu->Flags, cpu->UStep);
     printf("Bus value: 0x%x\n", cpu->BUS);
     printf("A: 0x%x C: 0x%x  B: 0x%x   Active:%c\n", cpu->A, cpu->C, cpu->B, active_reg);
