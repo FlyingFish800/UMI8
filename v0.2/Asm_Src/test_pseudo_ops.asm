@@ -7,13 +7,16 @@
 .END
 
 ; How to do registers? immediates?
-;.MACRO PUSH <reg>
-;    PUT reg
-;    PEEK reg
-;.END
+.MACRO PUSH <reg>
+    ; Random names doen't work for marco args. _lbl only worked because it was a valid label bc of the _.
+    ; Maybe have special char for macro args? Like %?
+    PUT reg
+    PEEK reg
+.END
 
 _start:
     CALL _targ
+    PUSH C
 _end:
     JP _end
 

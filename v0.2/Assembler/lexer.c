@@ -78,6 +78,9 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
      * 6: Handle comments and newline(s), unget EOFs
      */
 
+    // Track if in a macro definition
+    static char in_macro = 0;
+
     // Get next block. If returns true for EOF, no more to parse
     if (getNextBlock(fp)) return PARSE_ERROR_NONE;
     char c = fgetc(fp);
@@ -137,6 +140,9 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         // Handle all valid keywords
         
         if (type == keyword_to_type(".MACRO")){
+            // Remember that you are inside macro definintion
+            in_macro = 1;
+
             // Set up macro struct as well to register it as valid
             new_macro.identifier = id;
             new_macro.operandsLength = 0;
@@ -146,6 +152,12 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
                 program->length = -1;
                 return PARSE_ERROR_MALLOC;
             }
+        }
+
+        // End strops weird rule exceptions
+        if (type == keyword_to_type(".END")){
+            printf("MACRO DEF DONE. ");
+            in_macro = 0;
         }
 
         instruction.instructionType = type;
@@ -162,8 +174,10 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             program->length = -1;
             return PARSE_ERROR_INVALID_INSTRUCTION;
         } else {
+            // Macro valid
             printf("%s IS A VALID MACRO.\n", id);
             instruction.instructionType = keyword_to_type("INVOKE_MACRO");
+            
             Operand name;
             name.accesingMode = MACRO_ID;
             name.value = id;
@@ -171,7 +185,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         }
     }
 
-    printf("INS <%s>",id);
+    printf("INS <%s%s> ", id, (in_macro) ? " <M>" : "");
 
     // -----HANDLE OPERANDS-----
     // Parse next block
@@ -209,8 +223,6 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         // Initialize operand
         operand.value = opId;
         operand.accesingMode = 0;
-
-        printf("opval: %s ", operand.value);
 
         // Set accessing mode
         if(operand.value[0] == '_') {
@@ -262,14 +274,18 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 
         } else if (instruction.instructionType == keyword_to_type(".MACRO") && instruction.operandsLength == 0){
             // First operand of a macro is the identifier
-            printf("MACRO ID [%s] ", operand.value);
+            //printf("MACRO ID [%s] ", operand.value);
             
             new_macro.identifier = operand.value;
             operand.accesingMode = MACRO_ID;
         } else {
-            printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
-            program->length = -1;
-            return PARSE_ERROR_INVALID_OPERAND;
+            if (!in_macro) {
+                printf("UNIMPLEMENTED/INVALID OPERAND <%s> IN PARSING\n",opId);
+                program->length = -1;
+                return PARSE_ERROR_INVALID_OPERAND;
+            } else {
+                // Failed every other check. Probably macro prototype
+            }
         }
 
         printf(":%s ",operand.value);
