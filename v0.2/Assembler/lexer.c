@@ -284,7 +284,10 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
                 program->length = -1;
                 return PARSE_ERROR_INVALID_OPERAND;
             } else {
-                // Failed every other check. Probably macro prototype
+                // Failed every other check. Probably macro argument
+                printf("MACRO ARGUMENT <%s> IN PARSING\n", operand.value);
+                new_macro.identifier = operand.value;
+                operand.accesingMode = MACRO_ARG;
             }
         }
 

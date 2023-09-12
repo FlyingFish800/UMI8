@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
     core.RAM[0xFFFF] = 0xFE;
 
     for (int i = 0; i < 16; i++) {
-        printf("0x%02d: 0x02%x\n", i, core.RAM[i]);
+        printf("0x%02x: 0x%02x\n", i, core.RAM[i]);
     }
     
 

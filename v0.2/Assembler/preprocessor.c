@@ -28,6 +28,7 @@ int registerMacroOperand(Macro *m, Operand o){
     return 1;
 }
 
+// Unused. Arg checking left as a task for codegen to simplify macro system
 int getMacroOperandType(char *operand){
     if(operand[0] == '_') {
         printf("ABS_LABEL");
@@ -72,7 +73,7 @@ int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
 
 }
 
-// Check that the current instruction fits a valid macro prototype
+// Check that the current instruction's arguments fit a valid macro prototype
 int checkMacroValid(MacroTable valid_macros, Instruction instruction){
     // Operand 0 is name
     char *instructionName = instruction.operands[0].value;
@@ -87,27 +88,28 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
     if (testMacro.operandsLength != instruction.operandsLength-1) return -1;
     printf("Same len ");
 
+    // NOTE: Don't check types. This is a macro system, so just paste code w/ args
     // Check operand types. Labels fine as adresses and vice versa
-    for (int o = 1; o < instruction.operandsLength; o++){
-        // Temp variables so these if statements aren't too horendous...
-        Operand macroOp = testMacro.operands[o - 1]; // -1 to account for skipped identifier
-        Operand insOp = instruction.operands[o];
-
-        // Parse the operand type of the macro arg
-        char macroOpMode = getMacroOperandType(macroOp.value);
-        if (macroOpMode <= 0) return -1;
-
-        // TODO: how to parse macro args??? Look at my old code
-        printf(" %d vs %d ", macroOpMode, insOp.accesingMode);
-
-        // Check if modes are the same or equivalent NOTE: Don't need euqivalent
-        if (macroOpMode == insOp.accesingMode) continue;
-        //else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
-        //else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
-        //else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
-        //else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
-        else return -1; // Invalid
-    }
+    // for (int o = 1; o < instruction.operandsLength; o++){
+    //     // Temp variables so these if statements aren't too horendous...
+    //     Operand macroOp = testMacro.operands[o - 1]; // -1 to account for skipped identifier
+    //     Operand insOp = instruction.operands[o];
+    // 
+    //     // Parse the operand type of the macro arg
+    //     char macroOpMode = getMacroOperandType(macroOp.value);
+    //     if (macroOpMode <= 0) return -1;
+    // 
+    //     // TODO: how to parse macro args??? Look at my old code
+    //     printf(" %d vs %d ", macroOpMode, insOp.accesingMode);
+    // 
+    //     // Check if modes are the same or equivalent NOTE: Don't need euqivalent
+    //     if (macroOpMode == insOp.accesingMode) continue;
+    //     //else if(macroOpMode == ABSOLUTE && insOp.accesingMode == ABSOLUTE_LABEL) continue;
+    //     //else if(macroOpMode == ABSOLUTE_LABEL && insOp.accesingMode == ABSOLUTE) continue;
+    //     //else if(macroOpMode == RELATIVE && insOp.accesingMode == RELATIVE_LABEL) continue;
+    //     //else if(macroOpMode == RELATIVE_LABEL && insOp.accesingMode == RELATIVE) continue;
+    //     else return -1; // Invalid
+    // }
 
     // Valid! Return index
     return macroIndex;
@@ -131,7 +133,7 @@ int inMacroDef(Macro m, char *name){
 //      JP _lbl
 // .end
 // CALL _subroutine
-// JP _lbl would get translated to JP _lbl, and PPC would be untouched
+// JP _lbl would get translated to JP _subroutine, and PPC would be untouched
 // Caller should error if returned instructionType is -1
 Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction, Instruction macroCall){
     // Create new instruction fulfilling macro
@@ -140,6 +142,7 @@ Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction,
     newInstruction.operandsLength = protoInstruction.operandsLength;
 
     // Make sure macros are not recursively called. 
+    // TODO: Remove?
     if ((protoInstruction.operandsLength > 0) && (protoInstruction.operands[0].accesingMode == MACRO_ID)){
         newInstruction.instructionType = -1;
         return newInstruction;
@@ -153,7 +156,9 @@ Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction,
 
         // Lookup index in macro potoype, continue if not in prototype
         if ((protoIndex = inMacroDef(macro, protoInstruction.operands[i].value)) == -1) {
-            newInstruction.operands[i] = newInstruction.operands[i];
+            // If in prototype, copy over
+            newInstruction.operands[i] = protoInstruction.operands[i];
+            printf(" [%s]", newInstruction.operands[i].value);
             continue;
         }
 
@@ -163,7 +168,7 @@ Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction,
         newInstruction.operands[i].value = macroCall.operands[i + 1].value; 
         // +1 because in macro definition the name is the first operand, but in prototype that isnt 
 
-        printf("%d:[%s]", protoIndex, newInstruction.operands[i].value);
+        printf(" %d:<%s>", protoIndex, newInstruction.operands[i].value);
     }
 
     return newInstruction;
@@ -232,7 +237,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             Instruction currentInstruction = macro.body.Instructions[i];
             Instruction modifiedInstruction;
 
-            // Todo: fulfill macro operands from prototype
+            // TODO: fulfill macro operands from prototype
             // TODO: what if operand arg, and global? I don't think
             // it would cause problems but should it be allowed?
 
@@ -248,9 +253,9 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
             // Eg. for PPC _start, Call _lbl would look up index 0
             // from the list of macro operands and get _start
 
+            printf(" %s ",keywords[modifiedInstruction.instructionType]);
             modifiedInstruction = createModifiedInstruction(macro, currentInstruction, instruction);
 
-            printf(" %s ",keywords[modifiedInstruction.instructionType]);
             error = addInstruction(processedProgram, modifiedInstruction, 1);
             if (error != 1) return -1;
         }

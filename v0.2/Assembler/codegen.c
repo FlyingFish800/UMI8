@@ -306,16 +306,19 @@ int generateCode(Program *program, FILE *outFile){
 
         } else if (strcmp(keywords[type], "PPC") == 0){
                 // Push program couter to stack
+                printf("0x%x PPC\n", address);
                 machineCode[address] = OP_PPC;
                 address += 1;
 
         } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
+                printf("0x%x NOP\n", address);
                 machineCode[address] = OP_NOP;
                 address += 1;
 
         } else if (strcmp(keywords[type], "RET") == 0){
                 // All these instructions are one byte with no args
+                printf("0x%x RET\n", address);
                 machineCode[address] = OP_RET;
                 address += 1;
 
@@ -327,6 +330,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PUT reg: %c\n", reg); return -1;}
                 unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x PUT %c\n", address, reg);
                 machineCode[address] = OP_PUTR + to_C;
                 address += 1;
 
@@ -338,6 +342,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR POP reg: %c\n", reg); return -1;}
                 unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x POP %c\n", address, reg);
                 machineCode[address] = OP_POPR + to_C;
                 address += 1;
 
@@ -349,6 +354,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR PEEK reg: %c\n", reg); return -1;}
                 unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x PEEK %c\n", address, reg);
                 machineCode[address] = OP_PEEKR + to_C;
                 address += 1;
 
@@ -363,13 +369,14 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR ADD <reg>, <imm>: %c\n", reg); return -1;}
                 unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x ADD %c\n", address, reg);
                 machineCode[address++] = OP_ADDIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
         } else if (strcmp(keywords[type], "ADDC") == 0){
                 // All these instructions are one byte with no args
                 if (ins->operands[0].accesingMode != REGISTER || ins->operands[1].accesingMode != IMMEDIATE) {
-                    printf("ADD MUST BE OF FORM ADDC <reg>, <imm>");
+                    printf("ADDC MUST BE OF FORM ADDC <reg>, <imm>");
                     return -1;
                 }
 
@@ -377,6 +384,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR ADDC <reg>, <imm>: %c\n", reg); return -1;}
                 unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x ADDC %c\n", address, reg);
                 machineCode[address++] = OP_ADDCIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
@@ -391,6 +399,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR SUB <reg>, <imm>: %c\n", reg); return -1;}
                 unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x SUB %c\n", address, reg);
                 machineCode[address++] = OP_SUBIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
@@ -405,6 +414,7 @@ int generateCode(Program *program, FILE *outFile){
                 if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR SUB <reg>, <imm>: %c\n", reg); return -1;}
                 unsigned char to_C = (reg == 'A') ? 0 : OP_ATOC;
 
+                printf("0x%x CMP %c\n", address, reg);
                 machineCode[address++] = OP_CMPIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
