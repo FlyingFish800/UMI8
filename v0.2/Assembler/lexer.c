@@ -154,7 +154,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             }
         }
 
-        // End strops weird rule exceptions
+        // End stops weird rule exceptions
         if (type == keyword_to_type(".END")){
             printf("MACRO DEF DONE. ");
             in_macro = 0;
@@ -292,6 +292,26 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         }
 
         printf(":%s ",operand.value);
+
+        // If include directive, add to code now
+        if (instruction.instructionType == keyword_to_type(".INCLUDE")){
+            printf("Including %s\n", operand.value);
+
+            // Open the file
+            // TODO: Can't load file from path in operand.value
+            FILE *inFile;
+            if ((inFile = fopen("lib/stdlib.asm", "r")) == NULL){
+                printf("FILE ERROR; COULDN'T LOAD %s\n", operand.value);
+                program->length = -1;
+                return PARSE_ERROR_INVALID_OPERAND;
+            }
+
+            printf("TODO: PARSE FILE");
+            program->length = -1;
+            return PARSE_ERROR_ADD_OEPRAND;
+
+            fclose(inFile);
+        }
 
         // Push operand to instruction. If it returns a 1, quit
         if(!addOperand(&instruction, operand)) {
