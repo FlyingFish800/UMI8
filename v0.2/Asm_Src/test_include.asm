@@ -1,6 +1,5 @@
 .INCLUDE "lib/stdlib.asm"
 
-.ASCII "HELLO"
 .ORG #0x0
 .GLOBAL _start
 

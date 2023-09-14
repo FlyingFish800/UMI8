@@ -369,10 +369,6 @@ void parseProgram(FILE *fp, Program *program, MacroTable *mt){
     // Either keep around or free static memory
     if (mt != NULL) mt = &valid_macros;
     else {
-        for (int i = 0; i < valid_macros.length; i++) {
-            for (int j = 0; j < valid_macros.macros[i].operandsLength; j++) free(valid_macros.macros[i].operands[j].value);
-            free(valid_macros.macros[i].operands);
-        }
         free(valid_macros.macros);
     }
 
