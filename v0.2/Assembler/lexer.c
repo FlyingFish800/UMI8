@@ -162,27 +162,27 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 
         instruction.instructionType = type;
     } else {
-        char isValidMacro = 0;
-        for (int i = 0; i < valid_macros->length; i++){
-            printf("Try: [%s] ", valid_macros->macros[i].identifier);
-            if (strcmp(id, valid_macros->macros[i].identifier) == 0) isValidMacro = 1;
-        }
-        
-        if (!isValidMacro){
-            printf("%s IS NOT A VALID MACRO.\n", id);
-            printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
-            program->length = -1;
-            return PARSE_ERROR_INVALID_INSTRUCTION;
-        } else {
+        //char isValidMacro = 0;
+        //for (int i = 0; i < valid_macros->length; i++){
+        //    printf("Try: [%s] ", valid_macros->macros[i].identifier);
+        //    if (strcmp(id, valid_macros->macros[i].identifier) == 0) isValidMacro = 1;
+        //}
+        //
+        //if (!isValidMacro){
+        //    printf("%s IS NOT A VALID MACRO.\n", id);
+        //    printf("UNIMPLEMENTED/INVALID INSTRUCTION <%s> IN PARSING\n",id);
+        //    program->length = -1;
+        //    return PARSE_ERROR_INVALID_INSTRUCTION;
+        //} else {
             // Macro valid
-            printf("%s IS A VALID MACRO.\n", id);
+            //printf("%s IS A VALID MACRO.\n", id);
             instruction.instructionType = keyword_to_type("INVOKE_MACRO");
             
             Operand name;
             name.accesingMode = MACRO_ID;
             name.value = id;
             addOperand(&instruction, name);
-        }
+        //}
     }
 
     printf("INS <%s%s> ", id, (in_macro) ? " <M>" : "");
@@ -247,6 +247,12 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             }
         } else if(operand.value[0] == '"') {
             printf("STR");
+            
+            // Trim leading '"' and trailing '"'
+            char *start = ++operand.value;
+            while (*(start++) != '"');
+            *(--start) = '\0';
+
             operand.accesingMode = STRING;
         } else if(operand.value[0] == '<') {
             // Make sure this is only used for macros
@@ -293,26 +299,6 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 
         printf(":%s ",operand.value);
 
-        // If include directive, add to code now
-        if (instruction.instructionType == keyword_to_type(".INCLUDE")){
-            printf("Including %s\n", operand.value);
-
-            // Open the file
-            // TODO: Can't load file from path in operand.value
-            FILE *inFile;
-            if ((inFile = fopen("lib/stdlib.asm", "r")) == NULL){
-                printf("FILE ERROR; COULDN'T LOAD %s\n", operand.value);
-                program->length = -1;
-                return PARSE_ERROR_INVALID_OPERAND;
-            }
-
-            printf("TODO: PARSE FILE");
-            program->length = -1;
-            return PARSE_ERROR_ADD_OEPRAND;
-
-            fclose(inFile);
-        }
-
         // Push operand to instruction. If it returns a 1, quit
         if(!addOperand(&instruction, operand)) {
             printf("FAILED TO ADD OPERAND %s FOR INSTRUCTION %s\n", operand.value, id);
@@ -323,7 +309,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
 }
 
 // Parse file given to function
-void parseProgram(FILE *fp, Program *program){
+void parseProgram(FILE *fp, Program *program, MacroTable *mt){
     // Create program that get freed for the intermediate lexing
     Program unprocessed;
     unprocessed.length = 0;
@@ -336,17 +322,31 @@ void parseProgram(FILE *fp, Program *program){
     if (program->Instructions == NULL) printf("FAILED INITIAL MALLOC FOR INSTRUCTIONS");
 
     // Track identifiers for valid macros that have been defined.
-    MacroTable valid_macros;
-    valid_macros.length = 0;
-    valid_macros.macros = malloc(0);
+    static MacroTable valid_macros;
+    
+    // If mt exists append to it, else create new macros list
+    if (mt == NULL) {
+        valid_macros.length = 0;
+        valid_macros.macros = malloc(0);
+    }
 
     // Get file pointer to first valid code block (or comment, which is handled in same code)
     skipWhiteSpace(fp);
 
     // ParseInstruction for every line of file, handles comments and '\n'. breaks look when EOF encoutnered
-    int error;
-    while (error = parseInstruction(fp, &unprocessed, &valid_macros)) printf("\n");
     // TODO: Increment counter. Line with error is in counter
+    int error;
+    while ((error = parseInstruction(fp, &unprocessed, &valid_macros)) == 1) printf("\n");
+    
+    // Close file
+    fclose(fp);
+
+    // Return if there are errors
+    if (error > 1) {
+        printf("Error parsing instruction\n");
+        program->length = -1;
+        return;
+    }
 
     // Print macros
     printf("\nMacros found: %d\n", valid_macros.length);
@@ -356,11 +356,27 @@ void parseProgram(FILE *fp, Program *program){
 
     // Preprocess Program
     printf("\n----BEGINING-PREPROCESSING----\n");
-    printf("Preprocessing returned: %d\n", preprocessProgram(&unprocessed, valid_macros, program));
-    printf("%d\n", program->length);
+    printf("Preprocessing returned: %d\n", error = preprocessProgram(&unprocessed, &valid_macros, program));
+    printf("Program length: %d\n", program->length);
+
+    // Return if there are errors
+    if (error != 1) {
+        printf("Error in preprocessing\n");
+        program->length = -1;
+        return;
+    }
+
+    // Either keep around or free static memory
+    if (mt != NULL) mt = &valid_macros;
+    else {
+        for (int i = 0; i < valid_macros.length; i++) {
+            for (int j = 0; j < valid_macros.macros[i].operandsLength; j++) free(valid_macros.macros[i].operands[j].value);
+            free(valid_macros.macros[i].operands);
+        }
+        free(valid_macros.macros);
+    }
 
     // Free unprocessed instructions array pointer
     // DON'T free anything else, those instructions are put directly into new program
     free(unprocessed.Instructions);
-
 }

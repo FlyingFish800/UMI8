@@ -6,8 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "lexer.h"
 #include "preprocessor.h"
 #include "structs.h"
+
+#define INCLUDE_FILE 2
 
 // Push a macro to the Macro table to register it as a valid macro
 int registerMacro(MacroTable *mt, Macro m, int returnCode){
@@ -61,10 +64,10 @@ int getMacroOperandType(char *operand){
 
 // Check all valid macros given to find index of specified macro
 // return index or -1 if invalid
-int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
+int getMacroIndexFromName(MacroTable *valid_macros, char *macroName){
     // Check each macro
-    for (int i = 0; i < valid_macros.length; i++){
-        char *currentMacroName = valid_macros.macros[i].identifier;
+    for (int i = 0; i < valid_macros->length; i++){
+        char *currentMacroName = valid_macros->macros[i].identifier;
         if (strcmp(currentMacroName, macroName) == 0) return i;
     }
 
@@ -74,7 +77,7 @@ int getMacroIndexFromName(MacroTable valid_macros, char *macroName){
 }
 
 // Check that the current instruction's arguments fit a valid macro prototype
-int checkMacroValid(MacroTable valid_macros, Instruction instruction){
+int checkMacroValid(MacroTable *valid_macros, Instruction instruction){
     // Operand 0 is name
     char *instructionName = instruction.operands[0].value;
 
@@ -84,7 +87,7 @@ int checkMacroValid(MacroTable valid_macros, Instruction instruction){
     printf("Same id ");
 
     // Get macro and check operands are same length
-    Macro testMacro = valid_macros.macros[macroIndex];
+    Macro testMacro = valid_macros->macros[macroIndex];
     if (testMacro.operandsLength != instruction.operandsLength-1) return -1;
     printf("Same len ");
 
@@ -176,7 +179,7 @@ Instruction createModifiedInstruction(Macro macro, Instruction protoInstruction,
 
 // Handle a single instruction. Put results into processedProgram, provided valid macros, 
 // and the current macro if applicable. Returns >0 if no errors
-int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, Instruction instruction){
+int preprocessInstruction(Program *processedProgram, MacroTable *valid_macros, Instruction instruction){
     /*  Handles individual instructions in a program:
      *  - Add as is if no processing necessary
      *  - Expand macros if necessary
@@ -192,14 +195,14 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         // Gaurd against nested macro definitions
         if (currentMacro != -1) {
             printf("CANNOT DEFINE MACRO INSIDE MACRO. %s ", macroName);
-            printf("FOUND INSIDE %s\n", valid_macros.macros[currentMacro].identifier);
+            printf("FOUND INSIDE %s\n", valid_macros->macros[currentMacro].identifier);
             return -1;
         }
         
         // Mark the current macro, exit if invalid
         if ((currentMacro = getMacroIndexFromName(valid_macros, macroName))== -1) return -1;
-        valid_macros.macros[currentMacro].body.Instructions = malloc(0);
-        valid_macros.macros[currentMacro].body.length = 0;
+        valid_macros->macros[currentMacro].body.Instructions = malloc(0);
+        valid_macros->macros[currentMacro].body.length = 0;
         printf("Current macro set to %s\n", macroName);
 
     } else if (instruction.instructionType == keyword_to_type(".END")) {
@@ -210,8 +213,12 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         }
 
         // Current macro has been fully processed
-        printf("Exiting macro %s\n", valid_macros.macros[currentMacro].identifier);
+        printf("Exiting macro %s\n", valid_macros->macros[currentMacro].identifier);
         currentMacro = -1;
+
+    }  else if (instruction.instructionType == keyword_to_type(".INCLUDE")) {
+        // Don't add, just tell calling function that inlcude needs to be done
+        return INCLUDE_FILE;
 
     } else if (instruction.instructionType == keyword_to_type("INVOKE_MACRO")) {
         int index;
@@ -224,7 +231,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
 
         // Found macro
         printf("Found!\n");
-        Macro macro = valid_macros.macros[index];
+        Macro macro = valid_macros->macros[index];
 
         // Create an ordered list of all macro operands:
         // Eg. for PPC _start -> ['_start']
@@ -269,7 +276,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
         } else { 
             // If in macro put instructions into it
             printf("YES preprocessor action\n");
-            Program *macroContents = &valid_macros.macros[currentMacro].body;
+            Program *macroContents = &valid_macros->macros[currentMacro].body;
             return addInstruction(macroContents, instruction, 1);
         }
 
@@ -279,15 +286,65 @@ int preprocessInstruction(Program *processedProgram, MacroTable valid_macros, In
     return 1;
 }
 
+// Inject file contents from include statement in its place (index)
+int include_file(Program *program, MacroTable *macros, int index){
+    // Get the include statement
+    Instruction include = program->Instructions[index];
+
+    if (include.operandsLength != 1 || include.operands[0].accesingMode != STRING) {
+        printf(".INCLUDE did not have 1 operand of type string.\n");
+        return 0;
+    }
+
+    // Get the path and open file
+    char *path = include.operands[0].value;
+    printf("Attempting to include \"%s\"\n", path);
+
+    FILE *fp;
+    if ((fp = fopen(path, "r")) == NULL){
+        printf("Failed to include %s.\n", path);
+        return 0;
+    }
+
+    // Read file contents into local program
+    printf("Reading file!\n");
+
+    Program file_contents;
+    file_contents.length = 0;
+    file_contents.Instructions = malloc(0);
+    
+    parseProgram(fp, &file_contents, macros);
+
+    if (file_contents.length == -1) return 0;
+    printf("Read file!\n");
+
+    // Inject file contents at current location (code past .INCLUDE hasn't been parsed yet)
+    for (int i = 0; i < file_contents.length; i++) {
+        if (!addInstruction(program, file_contents.Instructions[i], 1)){
+            printf("Problem occured Injecting included code.\n");
+            return 0;
+        }
+
+    }
+    
+
+    return 1;
+}
+
 // Turn lexed token stream into a processed stream fit for generation
-int preprocessProgram(Program *program, MacroTable macros, Program *processed){
+int preprocessProgram(Program *program, MacroTable *macros, Program *processed){
     // TODO: Take in multiple programs like gcc and process instruction for all
     // TODO: free unused instructions
 
     // Run every instruction in program through preprocessor and put result in processed
     for (int i = 0; i < program->length; i++) {
         printf("Processing %d %s: ", i, keywords[program->Instructions[i].instructionType]);
-        if (preprocessInstruction(processed, macros, program->Instructions[i]) <= 0) return 0;
+
+        char return_code = preprocessInstruction(processed, macros, program->Instructions[i]);
+        if (return_code <= 0) return 0;
+        else if (return_code == INCLUDE_FILE) {
+            if (include_file(program, macros, i) == 0) return 0;
+        }
     }
     
     printf("Processed output contains %d entries\n",processed->length);

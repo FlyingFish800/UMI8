@@ -27,11 +27,8 @@ int main(int argc, char *argv[]) {
     // Lex and preprocess program to intstructions
     printf("\n----BEGINNING-LEXING----\n");
     Program program;
-    parseProgram(inFile, &program);
+    parseProgram(inFile, &program, NULL);     // Closes file
     if (program.length <= 0) return 0;
-
-    // Close file
-    fclose(inFile);
 
     // Print parsed output
     printf("\n----PARSED-OUTPUT----\n");

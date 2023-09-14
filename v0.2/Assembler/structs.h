@@ -46,6 +46,21 @@ typedef struct LabelTable {
     Label *labels;
 } LabelTable;
 
+// Macro to be expanded into body
+typedef struct Macro {
+    char *identifier;
+    int operandsLength;
+    Operand *operands;
+    Program body;
+} Macro;
+
+// MacroTable struct that contains all macros as a queue
+typedef struct MacroTable {
+    int memoryLength;
+    int length;
+    Macro *macros;
+} MacroTable;
+
 
 int addOperand(Instruction *i, Operand o);
 

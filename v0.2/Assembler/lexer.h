@@ -8,6 +8,6 @@
 #include <stdio.h>
 #include "structs.h"
 
-void parseProgram(FILE *fp, Program *program);
+void parseProgram(FILE *fp, Program *program, MacroTable *mt);
 
 #endif
