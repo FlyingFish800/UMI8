@@ -16,7 +16,10 @@
 #define OP_JPI    0x10 // Jump to immediate address
 #define OP_JPZI   0x11 // Jump to immediate address if zero flag set
 #define OP_JNZI   0x12 // Jump to immediate address if zero flag not set
-#define DBG       0x17 // Debug operation for emulator
+#define OP_JPNI   0x13 // Jump to immediate address if negative flag set
+#define OP_JNNI   0x14 // Jump to immediate address if negative flag not set
+#define OP_JPCI   0x15 // Jump to immediate address if carry flag set
+#define OP_JNCI   0x16 // Jump to immediate address if carry flag not set
 #define OP_ADDIA  0x18 // Add immediate value to A
 #define OP_SUBIA  0x19 // Subtract immediate value from A
 #define OP_ADDCIA 0x1A // Add w/ carry immediate value to 

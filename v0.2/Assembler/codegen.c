@@ -311,6 +311,34 @@ int generateCode(Program *program, FILE *outFile){
                 if (size == -1) return -1;
                 address += size;
 
+        } else if (strcmp(keywords[type], "JC") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JC\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JPCI, type);
+                if (size == -1) return -1;
+                address += size;
+
+        } else if (strcmp(keywords[type], "JNC") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JNC\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JNCI, type);
+                if (size == -1) return -1;
+                address += size;
+
+        } else if (strcmp(keywords[type], "JN") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JN\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JPNI, type);
+                if (size == -1) return -1;
+                address += size;
+
+        } else if (strcmp(keywords[type], "JNN") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JNN\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JNNI, type);
+                if (size == -1) return -1;
+                address += size;
+
         } else if (strcmp(keywords[type], "PPC") == 0){
                 // Push program couter to stack
                 printf("0x%x PPC\n", address);

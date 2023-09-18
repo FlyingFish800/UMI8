@@ -83,6 +83,7 @@ void clock_core(CPU* cpu){
                 if(cpu->BUS == 0) flags |= ZERO;   // Zero
                 if((cpu->BUS&0b10000000) == 1) flags |= NEGATIVE;   // Negative
                 cpu->Flags = flags;
+                printf("flags: %d\n", flags);
                 break;
 
             } else {
@@ -94,6 +95,7 @@ void clock_core(CPU* cpu){
                 if(cpu->BUS == 0) flags |= ZERO;   // Zero
                 if((cpu->BUS&0b10000000)>>7 == 1) flags |= NEGATIVE;   // Negative
                 cpu->Flags = flags;
+                printf("flags: %3d", flags);
                 break;
 
             }

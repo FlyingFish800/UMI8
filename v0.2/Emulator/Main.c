@@ -64,26 +64,6 @@ int main(int argc, char *argv[]){
     for (int i = 0; i < 16; i++) {
         printf("0x%02x: 0x%02x\n", i, core.RAM[i]);
     }
-    
-
-    /*core.RAM[0] = 0x08; // LD A, 0x42
-    core.RAM[1] = 0x42;
-    core.RAM[2] = 0x3; // PUSH A
-    core.RAM[3] = 0x08; // LD A, 0x42
-    core.RAM[4] = 0x69;
-    core.RAM[5] = 0x4; // POP A
-
-    
-    core.RAM[0x0] = 0x1; // CALL 0xABCD
-    core.RAM[0x1] = 0xCD;
-    core.RAM[0x2] = 0xAB;
-
-    core.RAM[0xABCD] = 0x1; // CALL 0xABCD
-    core.RAM[0xABCE] = 0x69;
-    core.RAM[0xABCF] = 0x42;
-    core.RAM[0xABD0] = 0x2; // RET
-
-    core.RAM[0x4269] = 0x2; // RET*/
 
     #ifndef THREADED
     
