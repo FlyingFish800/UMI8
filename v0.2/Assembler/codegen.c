@@ -317,6 +317,13 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address] = OP_PPC;
                 address += 1;
 
+        } else if (strcmp(keywords[type], "DBG") == 0){
+                // All these instructions are one byte with no args
+                printf("0x%x DBG\n", address);
+                machineCode[address] = OP_NOP + OP_ATOC;
+                address += 1;
+
+
         } else if (strcmp(keywords[type], "NOP") == 0){
                 // All these instructions are one byte with no args
                 printf("0x%x NOP\n", address);

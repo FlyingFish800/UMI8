@@ -6,41 +6,60 @@
 ; NOTE: Calling macro within macro is weird
 
 _start:
-    CALL _print_num
-    ZERO C
+    ; Print 3 digits
+    LD C, _d2
+    CALL _print_digit
+    LD C, _d1
+    CALL _print_digit
+    LD C, _d0
+    CALL _print_digit
 
-    ; Inc _d2
-    LD A, _d2
-    ADD A, #1
-    LD _d2, A
+    ; \n\r
+    LD C, #10
+    LD _serial_out, C
+    LD C, #13
+    LD _serial_out, C
 
-    ; Check overflow
-    CMP A, #10
-    JNZ _cont_d2 
-    ; Digit 0 carry
-    LD A, _d1
-    ADD A, #1
-    LD _d1, A
-    LD _d0, C ; Zero overflowed digit
-_cont_d2:
-
-    ; Digit 1 carry
-    LD A, _d2
-    JNZ _cont_d1
-    ; Digit 0 carry
-    LD A, _d2
-    ADD A, #1
-    LD _d2, A
-    LD _d2, C ; Zero overflowed digit
-_cont_d1:
-
-    ; Check number of iterations and repeat if not 255
-    LD C, _dC
-    CMP C, #255
-    JZ _end
-
+    ; Update counter, leave if 255
+    LD C, _counter
     ADD C, #1
-    LD _dC, C
+    CMP C, #0   ; Overflow after 255 is 0
+    JZ _end
+    LD _counter, C
+
+    ; Update digit 0
+    LD C, _d0
+    ADD C, #1
+    CMP C, #10
+    JZ _overflow_0
+
+    ; No overflow d0
+    LD _d0, C
+    JP _start
+
+    ; digit 0 carry
+_overflow_0:
+    ; Zero digit 0
+    ZERO C
+    LD _d0, C
+
+    ; Increment digit 1
+    LD C, _d1
+    ADD C, #1
+    CMP C, #10
+    JZ _overflow_1 
+
+    ; No overflow d1
+    LD _d1, C
+    JP _start
+
+    ; Digit 1 overflowed    
+_overflow_1:
+    ZERO C
+    LD _d1, C
+    LD C, _d2
+    ADD C, #1
+    LD _d2, C
     JP _start
 
 
@@ -48,52 +67,14 @@ _end:
     JP _end
 
 
-_dC:
+_counter:
     .DB #0
-
-; Digits of number, 012 
 _d0:
     .DB #0
 _d1:
     .DB #0
 _d2:
     .DB #0
-
-; Print number from digits in order
-_print_num:
-    ; Print lowest digit
-    LD C, _d0
-    CALL _print_digit
-
-    ;; Don't skip second digit if third digit is non-zero
-    LD C, _d2
-    CMP C, #0
-    JNZ _no_skip_d1
-
-    ;; Skip second digit if zero
-    LD C, _d1
-    CMP C, #0
-    JZ _skp_d1
-_no_skip_d1:
-    
-    ; Print second digit
-    LD C, _d1 ; If skipped second digit check this is necessary
-    CALL _print_digit
-_skp_d1:
-
-    ; Skip third digit if zero
-    LD C, _d2
-    CMP C, #0
-    JZ _skp_d2
-    CALL _print_digit ; Print
-_skp_d2:
-
-    LD C, #10
-    LD _serial_out, C
-    LD C, #13
-    LD _serial_out, C
-    RET
-
 
 ; Print digit in C as ascii
 _print_digit:

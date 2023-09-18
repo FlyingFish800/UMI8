@@ -6,7 +6,7 @@
 #include "IODevices/ansiicommands.h"
 
 #define THREADED
-// #define DEBUG
+//#define DEBUG
 
 #ifdef THREADED
 #warning "Multithreading on"
@@ -97,6 +97,11 @@ int main(int argc, char *argv[]){
             for (int i = 0; i < RAM_SIZE; i++){
                 if (core.RAM[i] != 0) printf("0x%x: 0x%x\n", i, core.RAM[i]);
             }
+        } else if (c == 'c') {
+            while(1) {
+                clock_core(&core);
+                if (&core.IR == 0) break;
+            } 
         } else {
             clock_core(&core);
         }

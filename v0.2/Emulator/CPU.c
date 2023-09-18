@@ -44,7 +44,10 @@ void clock_core(CPU* cpu){
     #endif
 
     // Every other bit of microcode being zero would load II with 0, a NOP
-    if ((CTRLWord & ALU) == CR) {cpu->UStep = 0; return;}
+    if ((CTRLWord & ALU) == CR) {
+        cpu->UStep = 0; 
+        return;
+    }
 
     // Set active register based on REG SELECT line. TODO: unimplemented
     cpu->REG_ACTIVE = ((cpu->IR & RSEL) == RSEL) ? &cpu->C : &cpu->A;
