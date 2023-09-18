@@ -185,7 +185,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         //}
     }
 
-    printf("INS <%s%s> ", id, (in_macro) ? " <M>" : "");
+    printf("INS <%s:%i%s> ", id, type, (in_macro) ? " <M>" : "");
 
     // -----HANDLE OPERANDS-----
     // Parse next block

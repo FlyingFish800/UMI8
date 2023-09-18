@@ -225,12 +225,12 @@ int preprocessInstruction(Program *processedProgram, MacroTable *valid_macros, I
 
         // Gaurd statement to validate macro prototype
         if((index = checkMacroValid(valid_macros, instruction)) == -1) {
-            printf("NOT FOUND\n");
+            printf("NOT FOUND (%s)\n", instruction.operands[0].value);
             return -1;
         }
 
         // Found macro
-        printf("Found!\n");
+        printf("Found! %d:%s\n", index, valid_macros->macros[index].identifier);
         Macro macro = valid_macros->macros[index];
 
         // Create an ordered list of all macro operands:
@@ -241,6 +241,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable *valid_macros, I
         printf("INJECTING: ");
         int error = 0;
         for (int i = 0; i < macro.body.length; i++){
+            printf("%d\n", i);
             Instruction currentInstruction = macro.body.Instructions[i];
             Instruction modifiedInstruction;
 
@@ -260,6 +261,7 @@ int preprocessInstruction(Program *processedProgram, MacroTable *valid_macros, I
             // Eg. for PPC _start, Call _lbl would look up index 0
             // from the list of macro operands and get _start
 
+            printf("aaaa %i\n", modifiedInstruction.instructionType);
             printf(" %s ",keywords[modifiedInstruction.instructionType]);
             modifiedInstruction = createModifiedInstruction(macro, currentInstruction, instruction);
 
@@ -316,7 +318,13 @@ int include_file(Program *program, MacroTable *macros, int index){
     parseProgram(fp, &file_contents, macros);
 
     if (file_contents.length == -1) return 0;
-    printf("Read file!\n");
+    printf("Read file!\n Found macros:\n");
+
+    // This will brak if macro contains macro
+    for (int i = 0; i < macros->length; i++) {
+        for (int j = 0; j < macros->macros[i].body.length; j++)
+            printf("%s[%d]: %s\n", macros->macros[i].identifier, j, keywords[macros->macros[i].body.Instructions[j].instructionType]);
+    }
 
     // Inject file contents at current location (code past .INCLUDE hasn't been parsed yet)
     for (int i = 0; i < file_contents.length; i++) {
@@ -325,6 +333,12 @@ int include_file(Program *program, MacroTable *macros, int index){
             return 0;
         }
 
+    }
+
+    // This will brak if macro contains macro
+    for (int i = 0; i < macros->length; i++) {
+        for (int j = 0; j < macros->macros[i].body.length; j++)
+            printf("%s[%d]: %s\n", macros->macros[i].identifier, j, keywords[macros->macros[i].body.Instructions[j].instructionType]);
     }
     
 

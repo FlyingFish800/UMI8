@@ -5,8 +5,8 @@
 #include "IODevices/terminal.h"
 #include "IODevices/ansiicommands.h"
 
-//#define THREADED
-#define DEBUG
+#define THREADED
+// #define DEBUG
 
 #ifdef THREADED
 #warning "Multithreading on"
@@ -121,6 +121,7 @@ int main(int argc, char *argv[]){
     char c = 0x0;
     while (c != 'q') {
         c = getchar();
+        printf("%c\n", c);
         pthread_mutex_lock(&core_data_access);
         core.RAM[SERIAL_OUT] = c;
         pthread_mutex_unlock(&core_data_access);

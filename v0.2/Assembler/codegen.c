@@ -299,8 +299,15 @@ int generateCode(Program *program, FILE *outFile){
 
         } else if (strcmp(keywords[type], "JZ") == 0){
                 // Load can have variable length based on which variant is used. All should have 1 operand though
-                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JPZ\n", ins->operandsLength); return -1;}
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JZ\n", ins->operandsLength); return -1;}
                 size = handleJP(*ins, &deferredGen, machineCode, address, OP_JPZI, type);
+                if (size == -1) return -1;
+                address += size;
+
+        } else if (strcmp(keywords[type], "JNZ") == 0){
+                // Load can have variable length based on which variant is used. All should have 1 operand though
+                if (ins->operandsLength != 1) {printf("INVALID OPERANDS LENGTH %i FOR JNZ\n", ins->operandsLength); return -1;}
+                size = handleJP(*ins, &deferredGen, machineCode, address, OP_JNZI, type);
                 if (size == -1) return -1;
                 address += size;
 
@@ -332,6 +339,18 @@ int generateCode(Program *program, FILE *outFile){
 
                 printf("0x%x PUT %c\n", address, reg);
                 machineCode[address] = OP_PUTR + to_C;
+                address += 1;
+
+        } else if (strcmp(keywords[type], "ZERO") == 0){
+                // All these instructions are one byte with no args
+                if (ins->operandsLength != 1) {printf("INVALID OPERAND LENGTH %d, EXPECTED 1 FOR ZERO\n", ins->operandsLength); return -1;}
+                
+                char reg = *ins->operands[0].value;
+                if (reg != 'C' && reg != 'A') {printf("INVALID REGISTER FOR ZERO reg: %c\n", reg); return -1;}
+                unsigned char to_C = (*ins->operands[0].value == 'A') ? 0 : OP_ATOC;
+
+                printf("0x%x ZERO %c\n", address, reg);
+                machineCode[address] = OP_ZROA + to_C;
                 address += 1;
 
         } else if (strcmp(keywords[type], "POP") == 0){
@@ -418,7 +437,7 @@ int generateCode(Program *program, FILE *outFile){
                 machineCode[address++] = OP_CMPIA + to_C;
                 machineCode[address++] = decodeImmediate(ins->operands[1].value) & 0xFF;
 
-        } else if (strcmp(keywords[type], ".MACRO") == 0 || strcmp(keywords[type], ".END") == 0){
+        } else if (keywords[type][0] == '.'){
             // Error for directives missed by preprocessor
             printf("ERROR: UNCAUGHT PREPROCESSOR DIRECTIVE %s\n", keywords[type]);
             return -1;

@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     printf("NOTE: Assembler only accepts assembly files with all caps instructions\n");
 
     // Get path of file to be parsed TODO: get from argv
-    char *path = "../Asm_Src/test_include.asm";
+    char *path = "../Asm_Src/programs/print_0-ff.asm";
     if (argc > 1) path = argv[1];
 
     // Open the file
