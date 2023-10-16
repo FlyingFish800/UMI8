@@ -1,12 +1,12 @@
 .ORG #0x0
 .GLOBAL _start
 
-.INCLUDE "lib/stdlib.asm"
+;.INCLUDE "lib/stdlib.asm"
 
 ; NOTE: Calling macro within macro is weird
 
 _start:
-
+    LD A, (_i0 + 1)
 _end:
     JP _end
 

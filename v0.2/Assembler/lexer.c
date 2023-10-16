@@ -206,6 +206,7 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         int opLen = 0;
         char *opId = malloc(0);
         int string = (c == '"');
+        int expression = (c == '(');
         do {
             opLen+=1;
             opId = realloc(opId,opLen*sizeof(char));
@@ -213,7 +214,11 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
             opId[opLen-1] = c;
             c = fgetc(fp);
             if (c == '"') string = 0;
-        } while ((string || !isWhiteSpace(c)) && c != ';' && c != '\n' && c != EOF);
+            if (c == ',' || c == ';' || c == '\n' || c == EOF) {
+                expression = 0;
+                ungetc(c, fp);
+            }
+        } while ((string || expression || !isWhiteSpace(c)) && c != ';' && c != '\n' && c != EOF);
         ungetc(c, fp);
 
         // When building strings yourself, dont forget to null terminate them!
@@ -234,6 +239,9 @@ int parseInstruction(FILE *fp, Program *program, MacroTable *valid_macros){
         } else if(operand.value[0] == '#') {
             printf("IMM");
             operand.accesingMode = IMMEDIATE;
+        } else if(operand.value[0] == '(') {
+            printf("EXPR");
+            operand.accesingMode = EXPRESSION;
         } else if(operand.value[0] == '[') {
             if(operand.value[1] == '[') { // Double memory lookup [[#0xCAFE]]
                 printf("REL");
