@@ -258,12 +258,28 @@ int generateCode(Program *program, FILE *outFile){
                 // ORG directly sets bytes
                 printf("0x%x DB: ", address);
                 for (int i = 0; i < ins->operandsLength; i++){
-                    if (ins->operands[i].accesingMode != IMMEDIATE) {
+                    if (ins->operands[i].accesingMode == IMMEDIATE) {
+                        // Insert immediates immediately
+                        printf("0x%x ", decodeImmediate(ins->operands[i].value) & 0xFF);
+                        machineCode[address++] = decodeImmediate(ins->operands[i].value) & 0xFF;
+
+                    } else if (ins->operands[i].accesingMode == ABSOLUTE){
+                        // Insert each byte of the address, LO first
+                        printf("0x%x ", (decodeImmediate(ins->operands[i].value) & 0xFF00) >> 8);
+                        machineCode[address++] = (decodeImmediate(ins->operands[i].value) & 0xFF00) >> 8;
+                        printf("0x%x ", decodeImmediate(ins->operands[i].value) & 0xFF);
+                        machineCode[address++] = decodeImmediate(ins->operands[i].value) & 0xFF;
+                        
+                    } else if (ins->operands[i].accesingMode == ABSOLUTE_LABEL){
+                        // Inject label at end
+                        addLabel(&deferredGen, (Label){ins->operands[i].value, address});
+                        address += 2;
+
+                    } else {
                         printf("BAD ACCESSING MODE FOR DB %i\n", ins->operands[i].accesingMode);
                         return -1;
                     }
-                    printf("0x%x ", decodeImmediate(ins->operands[i].value) & 0xFF);
-                    machineCode[address++] = decodeImmediate(ins->operands[i].value) & 0xFF;
+                    
                 }
                 printf("\n");
                 
